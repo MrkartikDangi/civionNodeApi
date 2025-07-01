@@ -1,0 +1,429 @@
+const express = require("express");
+const router = express.Router();
+const { authenticateJWT, isBoss } = require("../../config/auth");
+const { check, oneOf } = require("express-validator");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const dailyDiaryController = require("../../controllers/app/dailyDiaryController");
+const dailyEntryController = require("../../controllers/app/dailyEntryController");
+const expenseController = require("../../controllers/app/expenseController");
+const invoiceController = require("../../controllers/app/invoiceController");
+const jobHazardController = require("../../controllers/app/jobHazardController");
+const locationWeatherController = require("../../controllers/app/locationWeatherController");
+const photoFileController = require("../../controllers/app/photoFilesController");
+const projectController = require("../../controllers/app/projectController");
+const weeklyEntryController = require("../../controllers/app/weeklyEntryController");
+const logoController = require("../../controllers/app/logoController");
+const userController = require("../../controllers/app/userController");
+const scheduleController = require("../../controllers/app/schedulesController");
+const mileageController = require("../../controllers/app/mileageController");
+const notificationController = require("../../controllers/app/notificationController");
+
+function ensureDirExists(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
+  }
+}
+
+// Define storage engine
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    let directoryType = "uploads";
+    let uploadDir = path.join(__dirname, `../../${directoryType}/`);
+    ensureDirExists(uploadDir);
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${uniqueSuffix}-${file.originalname}`);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (!file) {
+    return cb(new Error("File not provided!"), false);
+  }
+  const isImage = file.mimetype.startsWith("image/");
+  const isPDF = file.mimetype === "application/pdf";
+
+  if (isImage || isPDF) {
+    cb(null, true);
+  } else {
+    return cb(new Error("Only image and PDF files are allowed!"), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // Limit to 5 MB
+  },
+});
+
+router.post("/projects/schedules",
+  oneOf([
+    [
+      check("projectId", "projectId is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT, projectController.schedules);
+router.post("/projects/remove",
+  oneOf([
+    [
+      check("projectId", "projectId is required").notEmpty(),
+    ],
+  ]), authenticateJWT, projectController.delete);
+router.post("/projects/addProjectData",
+  oneOf([
+    [
+      check("projectName", "projectName is required").notEmpty(),
+      check("projectNumber", "projectNumber is required").notEmpty(),
+      check("owner", "owner is required").notEmpty(),
+      check("startDate", "startDate is required").notEmpty(),
+      check("endDate", "endDate is required").notEmpty(),
+    ],
+  ]), authenticateJWT, projectController.addProjectData);
+
+router.post(
+  "/auth/register",
+  oneOf([
+    [
+      check("email", "email is required").notEmpty(),
+      check("password", "password is required").notEmpty(),
+      check("username", "username is required").notEmpty(),
+    ],
+  ]),
+  userController.registerUser,
+);
+router.post(
+  "/auth/update-location",
+  oneOf([
+    [
+      check("userId", "userId is required").notEmpty(),
+      check("latitude", "latitude is required").notEmpty(),
+      check("longitude", "longitude is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  userController.updateLocation,
+);
+
+router.post(
+  "/auth/login",
+  oneOf([
+    [
+      check("email", "email is required").notEmpty(),
+      check("password", "password is required").notEmpty(),
+    ],
+  ]),
+  userController.login,
+);
+router.post(
+  "/auth/forgot-password",
+  oneOf([[check("email", "email is required").notEmpty()]]),
+  userController.forgotPassword,
+);
+router.post(
+  "/auth/verify-code",
+  oneOf([
+    [
+      check("email", "email is required").notEmpty(),
+      check("code", "code is required").notEmpty(),
+    ],
+  ]),
+  userController.verifyCode,
+);
+router.post(
+  "/auth/reset-password",
+  oneOf([
+    [
+      check("email", "email is required").notEmpty(),
+      check("newPassword", "newPassword is required").notEmpty(),
+    ],
+  ]),
+  userController.resetPassword,
+);
+router.get("/auth/profile", authenticateJWT, userController.profile);
+router.post(
+  "/auth/addCompanyEmail",
+  oneOf([
+    [
+      check("email", "email is required").notEmpty(),
+      check('isBoss', 'isBoss is required').notEmpty()
+    ],
+  ]),
+  authenticateJWT,
+  userController.addCompanyEmail,
+);
+
+router.post(
+  "/upload/uploadAttachment",
+  authenticateJWT,
+  upload.fields([{ name: "file" }]),
+  photoFileController.uploadAttachement,
+);
+router.post(
+  "/upload/deleteAttachemnts",
+  oneOf([[check("path", "path is required").notEmpty()]]),
+  authenticateJWT,
+  photoFileController.deleteAttachemnts,
+);
+router.post(
+  "/photos/getPhotoFiles",
+  authenticateJWT,
+  photoFileController.getPhotoFiles,
+);
+router.post(
+  "/photos/getPhotoFilesByUserId",
+  authenticateJWT,
+  photoFileController.getPhotoFilesByUserId,
+);
+router.post(
+  "/photos/deletePhotoFiles",
+    oneOf([
+    [
+      check("id", "id is required").notEmpty()
+    ],
+  ]),
+  authenticateJWT,
+  photoFileController.deletePhotoFiles,
+);
+router.post(
+  "/photos/createPhotoFiles",
+  oneOf([
+    [
+      check("imageurl", "imageurl is required").notEmpty(),
+      check("location", "location is required").notEmpty(),
+      check("date", "date is required").notEmpty(),
+      check("time", "time is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  photoFileController.createPhotoFiles,
+);
+
+router.get(
+  "/diary/fetch-daily-diary",
+  authenticateJWT,
+  dailyDiaryController.getDailyDiary,
+);
+// --> below
+router.post(
+  "/diary/createDailyDiary",
+  oneOf([
+    [
+      check("projectId", "projectId is required").notEmpty(),
+      check("selectedDate", "selectedDate is required").notEmpty(),
+      check(
+        "ownerProjectManager",
+        "ownerProjectManager is required",
+      ).notEmpty(),
+      check("contractNumber", "contractNumber is required").notEmpty(),
+      check("contractor", "contractor is required").notEmpty(),
+      check("reportNumber", "reportNumber is required").notEmpty(),
+      check("ownerContact", "ownerContact is required").notEmpty(),
+      check("description", "description is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  dailyDiaryController.createDailyDiary,
+);
+
+router.get(
+  "/diary/getDailyEntry",
+  authenticateJWT,
+  dailyEntryController.getDailyEntry,
+);
+//  -> below
+router.post(
+  "/daily/createDailyEntry",
+  oneOf([
+    [
+      check("projectId", "projectId is required").notEmpty(),
+      check("selectedDate", "selectedDate is required").notEmpty(),
+      check("location", "location is required").notEmpty(),
+      check("reportNumber", "reportNumber is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  dailyEntryController.createDailyEntry,
+);
+
+router.post(
+  "/weekly/createWeeklyEntry",
+  oneOf([
+    [
+      check("projectId", "projectId is required").notEmpty(),
+      check("startDate", "startDate is required").notEmpty(),
+      check("endDate", "endDate is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  weeklyEntryController.createWeeklyEntry,
+);
+router.post(
+  "/weekly/getWeeklyReport",
+  authenticateJWT,
+  weeklyEntryController.getWeeklyReport,
+);
+
+router.get(
+  "/invoices/getInvoiceList",
+  authenticateJWT,
+  invoiceController.getInvoiceData,
+);
+router.post(
+  "/invoices/create-invoice",
+  oneOf([
+    [
+      check("clientName", "clientName is required").notEmpty(),
+      check("fromDate", "fromDate is required").notEmpty(),
+      check("toDate", "toDate is required").notEmpty(),
+      check("invoiceTo", "invoiceTo is required").notEmpty(),
+      check("projectId", "projectId is required").notEmpty(),
+      check("description", "description is required").notEmpty(),
+      check("userDetails", "userDetails is required").notEmpty(),
+      check("totalBillableHours", "totalBillableHours is required").notEmpty(),
+      check("subTotal", "subTotal is required").notEmpty(),
+      check("totalAmount", "totalAmount is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  invoiceController.createInvoice,
+);
+router.post(
+  "/invoices/generateInvoiceExcel",
+  oneOf([
+    [
+      check("fromDate", "fromDate is required").notEmpty(),
+      check("toDate", "toDate is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  invoiceController.generateInvoiceExcel,
+);
+
+router.get(
+  "/jha/fetch-job-hazard",
+  authenticateJWT,
+  jobHazardController.getJobHazardData,
+);
+router.post(
+  "/jha/job-hazard",
+  oneOf([
+    [
+      check("selectedDate", "selectedDate is required").notEmpty(),
+      check("time", "time is required").notEmpty(),
+      check("location", "location is required").notEmpty(),
+      check("projectName", "projectName is required").notEmpty(),
+      check("description", "description is required").notEmpty(),
+      check("workers", "workers is required").notEmpty(),
+      check("reviewedBy", "reviewedBy is required").notEmpty(),
+      check("reviewSignature", "reviewSignature is required").notEmpty(),
+      // check("dateReviewed", "dateReviewed is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  jobHazardController.createJobHazard,
+);
+
+router.get("/logos/getLogo", authenticateJWT, logoController.getLogoList);
+router.post(
+  "/logos/add-logo",
+  oneOf([
+    [
+      check("companyName", "companyName is required").notEmpty(),
+      check("fileUrl", "fileUrl is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  logoController.addLogo,
+);
+
+router.post(
+  "/expense/getExpense",
+  authenticateJWT,
+  expenseController.getExpense,
+);
+router.post(
+  "/expense/addExpense",
+  authenticateJWT,
+  expenseController.addExpense,
+);
+router.get(
+  "/expense/approvals",
+  authenticateJWT,
+  isBoss,
+  expenseController.getPendingApprovalList,
+);
+router.post(
+  "/expense/approve",
+  authenticateJWT,
+  isBoss,
+  expenseController.expenseApprove,
+);
+
+router.post(
+  "/location/getLocationAndWeather",
+  oneOf([[check("userId", "userId is required").notEmpty()]]),
+  authenticateJWT,
+  locationWeatherController.getLocationWeather,
+);
+
+router.post(
+  "/schedules/upload",
+  oneOf([
+    [
+      check("month", "month is required").notEmpty(),
+      check("projectId", "projectId is required").notEmpty(),
+      check("pdfUrl", "projectName is required").notEmpty(),
+      check("owner", "owner is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  scheduleController.uploadSchedule,
+);
+// --below
+router.post(
+  "/schedules/getScheduleData",
+  authenticateJWT,
+  scheduleController.getScheduleData,
+);
+
+router.post(
+  "/mileage/calculate-mileage",
+  oneOf([
+    [
+      check("userId", "userId is required").notEmpty(),
+      check("startLocation", "startLocation is required").notEmpty(),
+      check("endLocation", "endLocation is required").notEmpty(),
+      check("distance", "distance is required").notEmpty(),
+      check("duration", "duration is required").notEmpty(),
+      check("amount", "amount is required").notEmpty(),
+      check("date", "date is required").notEmpty(),
+      check("coords", "coords is required").notEmpty()
+    ],
+  ]),
+  authenticateJWT,
+  mileageController.calculateMileage,
+);
+router.get(
+  "/mileage/history/:userId",
+  [
+    check("startDate", "startDate is required").notEmpty(),
+    check("endDate", "endDate is required").notEmpty()
+  ],
+  authenticateJWT,
+  mileageController.getMileageHistory
+);
+
+router.get(
+  "/notification/getNotifications",
+  authenticateJWT,
+  notificationController.getNotifications,
+);
+
+module.exports = router;
