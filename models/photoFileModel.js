@@ -26,17 +26,13 @@ PhotoFiles.getPhotoFilesData = (postData) => {
 PhotoFiles.addPhotoFileData = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
-      userId: postData.user.userId,
+      userId: postData.userId,
       schedule_id: postData.schedule_id,
       file_url: postData.fileName,
       folder_name: postData.folder_name,
-      location: postData.location,
-      date: postData.date,
-      time: postData.time,
       description: postData.description || '',
-      created_by: postData.user.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_by: postData.userId,
+      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ["kps_photofiles_doc", insertedData]

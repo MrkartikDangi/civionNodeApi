@@ -113,28 +113,26 @@ exports.createPhotoFiles = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    req.body.fileName = path.basename(req.body.imageurl);
-    req.body.folder_name = path.dirname(req.body.imageurl);
-    let addPhotoFileData = await PhotoFiles.addPhotoFileData(req.body)
-    if (addPhotoFileData.insertId) {
+    if (req.body.imageurl && req.body.imageurl.length) {
+      for (let row of req.body.imageurl) {
+        row.schedule_id = req.body.schedule_id
+        row.userId = req.body.user.userId
+        row.fileName = path.basename(row.path);
+        row.folder_name = path.dirname(row.path);
+        await PhotoFiles.addPhotoFileData(row)
+      }
       db.commit()
       return generic.success(req, res, {
-        message: "Photofiles inserted successfully",
-        data: {
-          id: addPhotoFileData.insertId,
-          uploadedUrl: `${process.env.Base_Url}/${req.body.folder_name}/${req.body.fileName}`
-        },
+        message: "Photofiles added successfully",
       });
-
     } else {
       db.rollback()
       return generic.error(req, res, {
-        message: "Failed to insert photofiles data"
+        message: `Provide image for uploadation`
       });
 
     }
   } catch (error) {
-    console.log(error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -166,7 +164,6 @@ exports.deletePhotoFiles = async (req, res) => {
     const dbDeleteResult = await PhotoFiles.deletePhotoFiles(req.body);
     if (dbDeleteResult.affectedRows) {
       let fileUrl = `${checkImageExists[0].folder_name}/${checkImageExists[0].file_url}`;
-
       const s3DeleteResult = await generic.deleteAttachmentFromS3(fileUrl);
       if (!s3DeleteResult?.status) {
         db.rollback()

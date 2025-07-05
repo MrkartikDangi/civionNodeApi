@@ -28,7 +28,7 @@ Schedule.addScheduleData = (postData) => {
       project_number: postData.project_number,
       owner: postData.owner,
       description: postData.description || '',
-      pdfUrl: postData.pdfUrl,
+      pdfUrl: postData.path,
       rate: postData.rate,
       invoice_to: postData.invoice_to,
       folder_name: postData.folder_name,

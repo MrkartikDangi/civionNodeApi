@@ -227,9 +227,7 @@ router.post(
   oneOf([
     [
       check("imageurl", "imageurl is required").notEmpty(),
-      check("location", "location is required").notEmpty(),
-      check("date", "date is required").notEmpty(),
-      check("time", "time is required").notEmpty(),
+      check("schedule_id", "schedule_id is required").notEmpty()
     ],
   ]),
   authenticateJWT,

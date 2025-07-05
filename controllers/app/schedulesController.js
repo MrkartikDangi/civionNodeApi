@@ -41,7 +41,7 @@ exports.addScheduleData = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    req.body.pdfUrl = path.basename(req.body.pdfUrl);
+    req.body.path = path.basename(req.body.pdfUrl);
     req.body.folder_name = path.dirname(req.body.pdfUrl);
     const addSchedule = await Schedule.addScheduleData(req.body)
     if (addSchedule.insertId) {
