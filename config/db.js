@@ -1,33 +1,37 @@
 const mysql = require('mysql');
 
+let connection;
 
-const connection = mysql.createConnection({
+function handleDisconnect() {
+  connection = mysql.createConnection({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     charset: process.env.DB_CHARSET
-});
+  });
 
-
-
-connection.connect((err) => {
+  connection.connect(err => {
     if (err) {
-        console.error('Database connection failed:', err.code, '-', err.message);
-        process.exit(1);
+      console.error('Error connecting:', err.code, err.message);
+      setTimeout(handleDisconnect, 2000); // Retry after delay
     } else {
-        console.log(' Database connection established successfully.');
+      console.log('Database connection established.');
     }
-});
+  });
 
-connection.on('error', (err) => {
-    console.error('MySQL connection error:', err.code, '-', err.message);
+  connection.on('error', err => {
+    console.error('DB error', err);
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-        console.error('Attempting to reconnect...');
+      console.log('Reconnecting...');
+      handleDisconnect(); // Reconnect
     } else {
-        throw err;
+      throw err;
     }
-});
+  });
+}
+
+handleDisconnect();
 
 module.exports = connection;

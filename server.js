@@ -16,7 +16,7 @@ app.use(morgan("dev"));
 app.use(cors());
 
 app.use((req, res, next) => {
-  const allowedHost = [process.env.HOST];
+  const allowedHost = [process.env.HOST,'localhost'];
   if (!allowedHost.includes(req.hostname)) {
     return res.status(403).send('Forbidden :: Invalid Host');
   }

@@ -61,7 +61,7 @@ exports.createWeeklyEntry = async (req, res) => {
     if (!checkProjectExist) {
       return generic.error(req, res, { message: "Invalid project ID, project not found" });
     }
-    const user = await User.checkExisitingUser({ userId: req.body.user.userId });
+    const user = await User.checkExistingUser({ userId: req.body.user.userId });
     if (!user.length) {
       return generic.error(req, res, { message: "User not found" });
     }

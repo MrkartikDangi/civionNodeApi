@@ -50,10 +50,10 @@ Generic.getProjectSchedules = async (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT kps_schedules.id, kps_schedules.pdfUrl, kps_schedules.month, kps_schedules.created_at, kps_project.id AS projectId, kps_project.projectName FROM kps_schedules  JOIN kps_project ON kps_schedules.projectId = kps_project.id WHERE (? IS NULL OR kps_schedules.projectId = ?);`
     let values = [postData.projectId, postData.projectId]
-    db.query(query,values,(err,res) => {
-      if(err){
+    db.query(query, values, (err, res) => {
+      if (err) {
         reject(err)
-      }else{
+      } else {
         resolve(res)
       }
     })
@@ -68,11 +68,16 @@ Generic.deleteAttachmentFromS3 = async (key) => {
 
   try {
     const command = new DeleteObjectCommand(params);
-    const result = await s3.send(command);
+    s3.send(command)
+      .then((result) => {
+        console.log(`S3 delete success:`, result);
+      })
+      .catch((err) => {
+        console.error(`S3 delete error:`, err);
+      });
     return {
       status: true,
-      message: "File deleted successfully",
-      data: result,
+      message: "success",
     };
   } catch (err) {
     return {
@@ -382,5 +387,30 @@ Generic.parseDistance = async (distanceText) => {
 
   return 0;
 }
+Generic.encodeToBase64 = async (str) => {
+  const bytes = new TextEncoder().encode(str)
+  return btoa(String.fromCharCode(...bytes))
+}
+Generic.decodeFromBase64 = async (str) => {
+  const bytes = Uint8Array.from(atob(str), char => char.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
+}
+Generic.connection = async () => {
+  return new Promise((resolve, reject) => {
+    db.getConnection((err, conn) => {
+      if (err) return reject(err);
+      console.log('db is connected')
+
+      conn.beginTransaction(err => {
+        if (err) {
+          conn.release();
+          return reject(err);
+        }
+        resolve(conn);
+      });
+    });
+  });
+};
+
 
 module.exports = Generic;

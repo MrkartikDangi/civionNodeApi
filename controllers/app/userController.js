@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const User = require("../../models/userModel");
@@ -25,30 +24,30 @@ exports.registerUser = async (req, res) => {
         message: `${req.body.email} :- Invalid email. Only emails from the domain 'kps.ca' are allowed`,
       });
     }
-    const checkCompanyEmail = await Email.checkExisitingMail(req.body)
-    if (checkCompanyEmail.length) {
-      const existingUser = await User.checkExisitingUser(req.body)
-      if (existingUser.length) {
+    const existingUser = await User.checkExistingUser({ filter: { email: req.body.email } })
+    req.body.password = await generic.encodeToBase64(req.body.password)
+    if (existingUser.length) {
+      if (existingUser[0]?.username !== null && existingUser[0]?.password !== null) {
         db.rollback()
-        return generic.error(req, res, {
-          message: "User already exists",
+        return generic.success(req, res, {
+          message: `${req.body.username} is already registered`,
         });
       }
-      req.body.hashedPassword = await bcrypt.hash(req.body.password, 10);
-      const createUser = await User.createUser(req.body)
-      if (createUser.insertId) {
+      req.body.id = existingUser[0]?.id
+      const updateUserDetails = await User.updateUserDetails(req.body)
+      if (updateUserDetails.affectedRows) {
         db.commit()
         return generic.success(req, res, {
-          message: "User registered successfully",
+          message: `${req.body.username} registered successfully`,
           data: {
-            id: createUser.insertId
+            id: req.body.id
           },
         });
 
       } else {
         db.rollback()
         return generic.error(req, res, {
-          message: "failed to register user"
+          message: `${req.body.username}'s registeration failed`
         });
       }
 
@@ -78,8 +77,8 @@ exports.updateLocation = async (req, res) => {
 
   try {
     db.beginTransaction()
-    const checkExisitingUser = await User.checkExisitingUser(req.body);
-    if (!checkExisitingUser.length) {
+    const checkExistingUser = await User.checkExistingUser(req.body);
+    if (!checkExistingUser.length) {
       return generic.error(req, res, { message: `User not found` });
     }
     const updateUserLocation = await User.updateUserLocation(req.body)
@@ -120,23 +119,23 @@ exports.login = async (req, res) => {
         message: `${req.body.email} :- Invalid email. Only emails from the domain 'kps.ca' are allowed`,
       });
     }
-    const existingEmailVerifiedByCompany = await Email.checkExisitingMail(req.body)
-
-    if (existingEmailVerifiedByCompany.length) {
-      const user = await User.checkExisitingUser(req.body);
-      if (!user.length) {
-        return generic.error(req, res, { message: "User not found" });
+    const checkExistingUser = await User.checkExistingUser({ filter: { email: req.body.email } })
+    if (checkExistingUser.length) {
+      if (checkExistingUser[0]?.username == null && checkExistingUser[0]?.password == null) {
+        return generic.error(req, res, {
+          message: `You have to registered first`,
+        });
       }
-      const isMatch = await bcrypt.compare(req.body.password, user[0].password);
-      if (!isMatch) {
+      const encryptPassword = await generic.encodeToBase64(req.body.password)
+      if (encryptPassword !== checkExistingUser[0]?.password) {
         return generic.error(req, res, {
           message: "Invalid email or password",
         });
       }
-      let isBoss = existingEmailVerifiedByCompany[0].isBoss == 1 ? true : false
+      let isBoss = checkExistingUser[0].is_boss == 1 ? true : false
 
       const token = jwt.sign(
-        { userId: user[0].id, isBoss },
+        { userId: checkExistingUser[0].id, isBoss },
         process.env.JWT_SECRET,
         { expiresIn: "24h" },
       );
@@ -144,8 +143,8 @@ exports.login = async (req, res) => {
         message: "User logged in successfully",
         data: {
           token: token,
-          userId: user._id,
-          userName: user.username,
+          userId: checkExistingUser[0]?.id,
+          userName: checkExistingUser[0]?.username,
           isBoss: isBoss
         },
       });
@@ -155,6 +154,7 @@ exports.login = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log('error',error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -173,7 +173,7 @@ exports.forgotPassword = async (req, res) => {
   try {
     db.beginTransaction()
     req.body.email = req.body.email.toLowerCase()
-    const user = await User.checkExisitingUser(req.body);
+    const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (!user) {
       return generic.error(req, res, { message: "User not found" });
     }
@@ -189,7 +189,7 @@ exports.forgotPassword = async (req, res) => {
     let updateCodeDetails = await User.updateCodeDetails(updatedCode)
     if (updateCodeDetails.affectedRows) {
       let data = {
-        to: req.body.email,
+        to: 'kanhaiyalalverma686@gmail.com',
         subject: `Password Reset Verification Code`,
         text: `Your verification code is: ${code}`,
       };
@@ -230,7 +230,7 @@ exports.verifyCode = async (req, res) => {
   }
   try {
     req.body.email = req.body.email.toLowerCase()
-    const user = await User.checkExisitingUser(req.body);
+    const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (!user.length) {
       return generic.error(req, res, { message: "User not found" });
     }
@@ -270,7 +270,7 @@ exports.resetPassword = async (req, res) => {
   try {
     db.beginTransaction()
     req.body.email = req.body.email.toLowerCase()
-    const user = await User.checkExisitingUser(req.body);
+    const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (!user.length) {
       return generic.error(req, res, { message: "User not found" });
     }
@@ -281,10 +281,10 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
+    const encryptPassword = await generic.encodeToBase64(req.body.newPassword)
     let data = {
       id: user[0].id,
-      password: hashedPassword
+      password: encryptPassword
     }
     let updateUserPassword = await User.updateUserPassword(data)
     if (updateUserPassword.affectedRows) {
@@ -310,7 +310,7 @@ exports.resetPassword = async (req, res) => {
 };
 exports.profile = async (req, res) => {
   try {
-    const user = await User.checkExisitingUser({ userId: req.body.user.userId });
+    const user = await User.checkExistingUser({ userId: req.body.user.userId });
     if (!user.length) {
       return generic.error(req, res, { message: "User not found" });
     }
@@ -388,6 +388,141 @@ exports.addCompanyEmail = async (req, res) => {
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
+    });
+  }
+};
+exports.changePassword = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const x = matchedData(req);
+    return generic.validationError(req, res, {
+      message: "Validation failed",
+      validationObj: errors.mapped(),
+    });
+  }
+  try {
+    db.beginTransaction()
+    if (req.body.currentPassword == req.body.newPassword) {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "New password must be different from the previous one",
+      });
+    }
+    req.body.password = await generic.encodeToBase64(req.body.currentPassword)
+    let checkPrevPass = await User.checkExistingUser({ filter: { password: req.body.password } })
+    console.log('checkPrevPass', checkPrevPass)
+
+    if (checkPrevPass.length) {
+      if (req.body.password == checkPrevPass[0]?.password) {
+        let newPassword = await generic.encodeToBase64(req.body.newPassword)
+        let data = {
+          id: checkPrevPass[0]?.id,
+          password: newPassword,
+        }
+        let updateUserPassword = await User.updateUserPassword(data)
+        if (updateUserPassword.affectedRows) {
+          db.commit()
+          return generic.success(req, res, {
+            message: "Password updated successfully",
+          });
+
+        } else {
+          db.rollback()
+          return generic.error(req, res, {
+            message: "Failed to update user password",
+          });
+
+        }
+
+      } else {
+        db.rollback()
+        return generic.error(req, res, {
+          message: "Current password does'nt match with the previous password",
+        });
+
+      }
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "User details not found with provided current password",
+      });
+
+    }
+  } catch (error) {
+    db.rollback()
+    return generic.error(req, res, {
+      status: 500,
+      message: "Something went wrong !"
+    });
+  }
+};
+exports.addUserDetails = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const x = matchedData(req);
+    return generic.validationError(req, res, {
+      message: "Validation failed",
+      validationObj: errors.mapped(),
+    });
+  }
+  try {
+    db.beginTransaction()
+    const user = await User.checkExistingUser({ email: req.body.email });
+    if (user.length) {
+      return generic.error(req, res, { message: `User with ${req.body.email} already exists ` });
+    }
+    let addUserDetails = await User.addUserDetails(req.body)
+    if (addUserDetails.insertId) {
+      db.commit()
+      return generic.success(req, res, {
+        message: `Email ${req.body.email} added successfully`,
+        data: {
+          id: addUserDetails.insertId
+        },
+      });
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: `Failed to add ${req.body.email}`
+      });
+    }
+  } catch (error) {
+    db.rollback()
+    return generic.error(req, res, {
+      status: 500,
+      message: "Something went wrong !"
+    });
+  }
+};
+exports.updateBossPermission = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const x = matchedData(req);
+    return generic.validationError(req, res, {
+      message: "Validation failed",
+      validationObj: errors.mapped(),
+    });
+  }
+  try {
+    db.beginTransaction()
+    const updateBossPermission = await User.updateBossPermission(req.body);
+    if (updateBossPermission.affectedRows) {
+      db.commit()
+      return generic.success(req, res, {
+        message: "Boss permission updated successfully",
+      });
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Failed to update boss permission",
+      });
+    }
+  } catch (error) {
+    console.log('error', error)
+    db.rollback()
+    return generic.error(req, res, {
+      status: 500,
+      message: "something went wrong!",
     });
   }
 };

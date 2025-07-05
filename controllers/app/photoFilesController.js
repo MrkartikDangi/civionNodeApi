@@ -15,6 +15,7 @@ exports.uploadAttachement = async (req, res) => {
       Array.isArray(req.files.file) &&
       req.files.file.length > 0
     ) {
+
       let data = {
         fileData: req.files.file,
         type: req.body.type,
@@ -82,7 +83,7 @@ exports.getPhotoFiles = async (req, res) => {
 };
 exports.getPhotoFilesByUserId = async (req, res) => {
   try {
-    const photos = await PhotoFiles.getPhotoFilesData({ userId: req.body.user.userId });
+    const photos = await PhotoFiles.getPhotoFilesData({ filter: { userId: req.body.user.userId } });
     let data = [];
     if (photos && photos.length > 0) {
       data = photos.map((x) => {
@@ -133,6 +134,7 @@ exports.createPhotoFiles = async (req, res) => {
 
     }
   } catch (error) {
+    console.log(error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -151,7 +153,7 @@ exports.deletePhotoFiles = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    const checkImageExists = await PhotoFiles.getPhotoFilesData({ id: req.body.id });
+    const checkImageExists = await PhotoFiles.getPhotoFilesData({ filter: { id: req.body.id } });
 
     if (!checkImageExists.length) {
       db.rollback()

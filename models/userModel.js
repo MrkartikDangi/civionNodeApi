@@ -3,16 +3,19 @@ const moment = require('moment')
 
 var User = () => { }
 
-User.checkExisitingUser = (postData) => {
+User.checkExistingUser = (postData) => {
   let whereCondition = ``
-  if (postData.userId) {
-    whereCondition += ` OR id = ${postData.userId}`
+  if (postData.filter && postData.filter.userId) {
+    whereCondition += ` AND id = ${postData.filter.userId}`
   }
-  if (postData.email) {
-    whereCondition += ` OR email = '${postData.email}'`
+  if (postData.filter && postData.filter.email) {
+    whereCondition += ` AND email = '${postData.filter.email}'`
   }
-  if (postData.username) {
-    whereCondition += ` OR username = '${postData.username}'`
+  if (postData.filter && postData.filter.username) {
+    whereCondition += ` AND username = '${postData.filter.username}'`
+  }
+  if (postData.filter && postData.filter.password) {
+    whereCondition += ` AND password = '${postData.filter.password}'`
   }
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM kps_users WHERE 1 = 1 ${whereCondition}`
@@ -26,17 +29,35 @@ User.checkExisitingUser = (postData) => {
     })
   })
 }
-User.createUser = (postData) => {
+User.addUserDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedValues = {
       email: postData.email,
-      password: postData.hashedPassword,
-      username: postData.username,
+      mileage_rate: postData.mileage_rate,
+      allowanceDistance: postData.allowanceDistance,
+      is_boss: postData.isBoss || false,
       created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_users', insertedValues]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+User.updateUserDetails = (postData) => {
+  return new Promise((resolve, reject) => {
+    let updatedValues = {
+      password: postData.password,
+      username: postData.username,
+      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    }
+    let query = `UPDATE ?? SET ? WHERE id = ? AND email = ?`
+    let values = ['kps_users',updatedValues, postData.id,postData.email]
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)
@@ -82,10 +103,30 @@ User.updateCodeDetails = (postData) => {
     })
   })
 }
+User.getUserPasswordDetails = (postData) => {
+  console.log('postData', postData)
+  return new Promise((resolve, reject) => {
+    let query = `SELECT * FROM kps_users WHERE password = ?`
+    let values = [postData.currentPassword]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        let data = {}
+        if (res.length) {
+          data = res[0]
+        }
+        console.log('data', data)
+        resolve(data)
+      }
+    })
+  })
+}
 User.updateUserPassword = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
       password: postData.password,
+      updatedby: postData.id,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
@@ -99,4 +140,24 @@ User.updateUserPassword = (postData) => {
     })
   })
 }
+User.updateBossPermission = (postData) => {
+  return new Promise((resolve, reject) => {
+    let updatedValues = {
+      is_boss: postData.is_boss,
+      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_by: postData.user.userId
+    }
+    let query = `UPDATE ?? SET ? WHERE id = ?`
+    let values = ['kps_users',updatedValues, postData.user.userId]
+    console.log('values',values)
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+
 module.exports = User;

@@ -99,6 +99,30 @@ router.post(
   userController.registerUser,
 );
 router.post(
+  "/auth/addUser",
+  oneOf([
+    [
+      check("email", "email is required").notEmpty(),
+      check("mileageRate", "mileageRate is required").notEmpty(),
+      check("allowanceDistance", "allowanceDistance is required").notEmpty(),
+      check("isBoss", "isBoss is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  isBoss,
+  userController.addUserDetails,
+);
+router.post(
+  "/auth/updateBossPermission",
+  oneOf([
+    [
+      check("is_boss", "is_boss is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  userController.updateBossPermission,
+);
+router.post(
   "/auth/update-location",
   oneOf([
     [
@@ -120,6 +144,13 @@ router.post(
     ],
   ]),
   userController.login,
+);
+router.post(
+  "/auth/changePassword",
+  oneOf([[check("currentPassword", "currentPassword is required").notEmpty()]]),
+  oneOf([[check("newPassword", "newPassword is required").notEmpty()]]),
+  authenticateJWT,
+  userController.changePassword,
 );
 router.post(
   "/auth/forgot-password",
@@ -183,7 +214,7 @@ router.post(
 );
 router.post(
   "/photos/deletePhotoFiles",
-    oneOf([
+  oneOf([
     [
       check("id", "id is required").notEmpty()
     ],
@@ -330,17 +361,40 @@ router.post(
   jobHazardController.createJobHazard,
 );
 
-router.get("/logos/getLogo", authenticateJWT, logoController.getLogoList);
+router.post("/logos/getLogo", authenticateJWT, logoController.getLogoList);
 router.post(
-  "/logos/add-logo",
+  "/logos/addLogo",
   oneOf([
     [
+      check("schedule_id", "schedule_id is required").notEmpty(),
       check("companyName", "companyName is required").notEmpty(),
       check("fileUrl", "fileUrl is required").notEmpty(),
     ],
   ]),
   authenticateJWT,
   logoController.addLogo,
+);
+router.post(
+  "/logos/editLogo",
+  oneOf([
+    [
+      check("schedule_id", "schedule_id is required").notEmpty(),
+      check("companyName", "companyName is required").notEmpty(),
+      check("fileUrl", "fileUrl is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  logoController.editLogo,
+);
+router.post(
+  "/logos/deleteLogo",
+  oneOf([
+    [
+      check("id", "id is required").notEmpty()
+    ],
+  ]),
+  authenticateJWT,
+  logoController.deleteLogo,
 );
 
 router.post(
@@ -372,25 +426,52 @@ router.post(
   authenticateJWT,
   locationWeatherController.getLocationWeather,
 );
-
-router.post(
-  "/schedules/upload",
-  oneOf([
-    [
-      check("month", "month is required").notEmpty(),
-      check("projectId", "projectId is required").notEmpty(),
-      check("pdfUrl", "projectName is required").notEmpty(),
-      check("owner", "owner is required").notEmpty(),
-    ],
-  ]),
-  authenticateJWT,
-  scheduleController.uploadSchedule,
-);
-// --below
 router.post(
   "/schedules/getScheduleData",
   authenticateJWT,
+  isBoss,
   scheduleController.getScheduleData,
+);
+router.post(
+  "/schedules/addScheduleData",
+  oneOf([
+    [
+      check("project_name", "project_name is required").notEmpty(),
+      check("project_number", "project_number is required").notEmpty(),
+      check("pdfUrl", "projectName is required").notEmpty(),
+      check("rate", "rate is required").notEmpty(),
+      check("invoice_to", "invoice_to is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  isBoss,
+  scheduleController.addScheduleData,
+);
+router.post(
+  "/schedules/updateScheduleData",
+  oneOf([
+    [
+      check("project_name", "project_name is required").notEmpty(),
+      check("project_number", "project_number is required").notEmpty(),
+      check("pdfUrl", "projectName is required").notEmpty(),
+      check("rate", "rate is required").notEmpty(),
+      check("invoice_to", "invoice_to is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  isBoss,
+  scheduleController.updateScheduleData,
+);
+router.post(
+  "/schedules/deleteScheduleData",
+  oneOf([
+    [
+      check("id", "id is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  isBoss,
+  scheduleController.deleteScheduleData,
 );
 
 router.post(

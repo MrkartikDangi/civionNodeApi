@@ -36,10 +36,9 @@ exports.addLogo = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    const { companyName, fileUrl } = req.body;
-    let logoUrl = path.basename(fileUrl);
-    let folder_name = path.dirname(fileUrl);
-    const newLogo = await Logo.addLogos({ companyName, folder_name, logoUrl });
+    let logoUrl = path.basename(req.body.fileUrl);
+    let folder_name = path.dirname(req.body.fileUrl);
+    const newLogo = await Logo.addLogos({ schedule_id: req.body.schedule_id, companyName: req.body.companyName, folder_name: folder_name, logoUrl: logoUrl, userId: req.body.user.userId });
     if (newLogo.insertId) {
       db.commit()
       return generic.success(req, res, {
@@ -55,6 +54,97 @@ exports.addLogo = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log('eeror', error)
+    db.rollback()
+    return generic.error(req, res, {
+      status: 500,
+      message: "something went wrong!",
+    });
+  }
+};
+exports.editLogo = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const x = matchedData(req);
+    return generic.validationError(req, res, {
+      message: "Validation failed",
+      validationObj: errors.mapped(),
+    });
+  }
+  try {
+    db.beginTransaction()
+    let getLogosList = await Logo.getLogosList({ filter: { logoid: req.body.id, schedule_id: req.body.schedule_id } })
+    if (!getLogosList.length) {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Logo details not found",
+      });
+
+    }
+    let url = `${process.env.Base_Url}/${getLogosList[0]?.folder_name}/${getLogosList[0]?.logoUrl}`
+    await generic.deleteAttachmentFromS3(url)
+
+    let logoUrl = path.basename(req.body.fileUrl);
+    let folder_name = path.dirname(req.body.fileUrl);
+    const editLogo = await Logo.editLogo({ companyName: req.body.companyName, folder_name: folder_name, logoUrl: logoUrl, id: req.body.id, schedule_id: req.body.schedule_id, userId: req.body.user.userId });
+    if (editLogo.affectedRows) {
+      db.commit()
+      return generic.success(req, res, {
+        message: "logo updated successfully",
+        data: {
+          id: req.body.id,
+          path: `${process.env.Base_Url}/${folder_name}/${logoUrl}`
+        }
+      });
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "failed to update logo",
+      });
+    }
+  } catch (error) {
+    db.rollback()
+    return generic.error(req, res, {
+      status: 500,
+      message: "something went wrong!",
+    });
+  }
+};
+exports.deleteLogo = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const x = matchedData(req);
+    return generic.validationError(req, res, {
+      message: "Validation failed",
+      validationObj: errors.mapped(),
+    });
+  }
+  try {
+    db.beginTransaction()
+    let getLogosList = await Logo.getLogosList({ filter: { logoid: req.body.id } })
+    if (!getLogosList.length) {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Logo details not found",
+      });
+
+    }
+    const deleteLogo = await Logo.deleteLogo(req.body);
+    if (deleteLogo.affectedRows) {
+      let url = `${process.env.Base_Url}/${getLogosList[0]?.folder_name}/${getLogosList[0]?.logoUrl}`
+      await generic.deleteAttachmentFromS3(url)
+      db.commit()
+      return generic.success(req, res, {
+        message: "logo is successfully deleted.",
+      });
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "failed to add logo",
+      });
+    }
+  } catch (error) {
+    console.log('eeror', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,

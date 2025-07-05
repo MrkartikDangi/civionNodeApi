@@ -5,11 +5,11 @@ const PhotoFiles = () => { }
 
 PhotoFiles.getPhotoFilesData = (postData) => {
   let whereCondition = ``
-  if (postData.userId) {
-    whereCondition += ` AND userId = ${postData.userId}`
+  if (postData.filter && postData.filter.userId) {
+    whereCondition += ` AND userId = ${postData.filter.userId}`
   }
-  if (postData.id) {
-    whereCondition += ` AND id = '${postData.id}'`
+  if (postData.filter && postData.filter.id) {
+    whereCondition += ` AND id = '${postData.filter.id}'`
   }
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM kps_photofiles_doc WHERE 1 = 1 ${whereCondition}`
@@ -27,7 +27,7 @@ PhotoFiles.addPhotoFileData = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
       userId: postData.user.userId,
-      projectId: postData.projectId,
+      schedule_id: postData.schedule_id,
       file_url: postData.fileName,
       folder_name: postData.folder_name,
       location: postData.location,

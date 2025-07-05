@@ -1,9 +1,16 @@
 const jwt = require("jsonwebtoken");
 const generic = require("./genricFn/common")
+const User = require("../models/userModel")
 
 module.exports = {
-  authenticateJWT: function authenticateJWT(req, res, next) {
-    const token = req.header("Authorization").split(" ")[1];;
+  authenticateJWT: async (req, res, next) => {
+    if (req.header("Authorization") == undefined) {
+      return generic.error(req, res, {
+        status: 403,
+        message: "Access denied. Authorization key is missing in headers.",
+      });
+    }
+    const token = req.header("Authorization").split(" ")[1];
     if (!token) {
       return generic.error(req, res, {
         status: 403,
@@ -24,8 +31,12 @@ module.exports = {
         });
       }
       req.body.user = user;
-      next();
     });
+    let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
+    if (getUserDetails.length) {
+      req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
+    }
+    next();
   },
   isBoss: function isBoss(req, res, next) {
     if (!req.body.user.isBoss) {
