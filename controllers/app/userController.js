@@ -466,7 +466,7 @@ exports.addUserDetails = async (req, res) => {
     });
   }
   try {
-    
+
     db.beginTransaction()
     const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (user.length) {

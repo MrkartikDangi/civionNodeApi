@@ -73,6 +73,8 @@ User.updateUserLocation = (postData) => {
       latitude: postData.latitude,
       longitude: postData.longitude,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_by: postData.user.userId
+
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.userId]
@@ -91,6 +93,8 @@ User.updateCodeDetails = (postData) => {
       verificationCode: postData.verificationCode,
       codeExpiration: postData.codeExpiration,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_by: postData.id
+
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.id]
@@ -126,7 +130,7 @@ User.updateUserPassword = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
       password: postData.password,
-      updatedby: postData.id,
+      updated_by: postData.id,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
