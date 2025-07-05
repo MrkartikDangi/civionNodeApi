@@ -154,7 +154,7 @@ exports.login = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -466,8 +466,9 @@ exports.addUserDetails = async (req, res) => {
     });
   }
   try {
+    
     db.beginTransaction()
-    const user = await User.checkExistingUser({ email: req.body.email });
+    const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (user.length) {
       return generic.error(req, res, { message: `User with ${req.body.email} already exists ` });
     }
