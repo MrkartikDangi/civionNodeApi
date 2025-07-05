@@ -52,6 +52,8 @@ User.addUserDetails = (postData) => {
 User.updateUserDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
+      latitude: postData.latitude,
+      longitude: postData.longitude,
       password: postData.password,
       username: postData.username,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),

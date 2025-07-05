@@ -35,6 +35,8 @@ module.exports = {
     let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
     if (getUserDetails.length) {
       req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
+      req.body.user.latitude = getUserDetails[0]?.latitude
+      req.body.user.longitude = getUserDetails[0]?.longitude
     }
     next();
   },

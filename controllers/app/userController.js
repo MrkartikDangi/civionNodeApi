@@ -410,7 +410,6 @@ exports.changePassword = async (req, res) => {
     }
     req.body.password = await generic.encodeToBase64(req.body.currentPassword)
     let checkPrevPass = await User.checkExistingUser({ filter: { password: req.body.password } })
-    console.log('checkPrevPass', checkPrevPass)
 
     if (checkPrevPass.length) {
       if (req.body.password == checkPrevPass[0]?.password) {

@@ -411,6 +411,78 @@ Generic.connection = async () => {
     });
   });
 };
+Generic.parseCoordinate = (value, type) => {
+  try {
+    const num = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(num)) throw new Error(`Invalid ${type} value: ${value}`);
+    if (type === "latitude" && (num < -90 || num > 90)) {
+      throw new Error(`Latitude out of range: ${num}`);
+    }
+    if (type === "longitude" && (num < -180 || num > 180)) {
+      throw new Error(`Longitude out of range: ${num}`);
+    }
+    return num;
 
+  } catch (error) {
+    console.log('error', error)
+  }
+
+};
+Generic.getGeoCodeResponse = async (postData) => {
+  try {
+    const geocodeResponse = await axios.get(
+      process.env.GOOGLE_API,
+      {
+        params: {
+          latlng: `${postData.latitude},${postData.longitude}`,
+          key: process.env.GOOGLE_MAPS_API_KEY,
+          language: "en",
+        },
+        timeout: 5000,
+      },
+    );
+    let formattedAddress
+
+    if (geocodeResponse.data.status === "OK") {
+      formattedAddress = geocodeResponse.data.results[0].formatted_address;
+    }
+    return formattedAddress
+
+  } catch (error) {
+    console.log('error', error)
+
+  }
+}
+Generic.getWeatherInfo = async (postData) => {
+  try {
+    const weatherResponse = await axios.get(
+      process.env.WEATHER_API,
+      {
+        params: {
+          lat: postData.latitude,
+          lon: postData.longitude,
+          appid: process.env.OPENWEATHER_API_KEY,
+          units: "metric",
+          lang: "en",
+        },
+        timeout: 5000,
+      },
+    );
+
+
+    const { main, weather, wind, name } = weatherResponse.data;
+    return weatherInfo = {
+      location: name,
+      temperature: main.temp,
+      feels_like: main.feels_like,
+      condition: weather[0].description,
+      icon: `https://openweathermap.org/img/wn/${weather[0].icon}.png`,
+      wind_speed: wind.speed,
+      humidity: main.humidity,
+    };
+  } catch (error) {
+    console.error("Weather API Error:", error.message);
+  }
+}
 
 module.exports = Generic;
