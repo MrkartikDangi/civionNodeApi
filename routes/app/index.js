@@ -94,8 +94,6 @@ router.post(
       check("email", "email is required").notEmpty(),
       check("password", "password is required").notEmpty(),
       check("username", "username is required").notEmpty(),
-      check("latitude", "latitude is required").notEmpty(),
-      check("longitude", "longitude is required").notEmpty(),
 
     ],
   ]),
@@ -423,6 +421,12 @@ router.post(
 
 router.post(
   "/location/getLocationAndWeather",
+  oneOf([
+    [
+      check("latitude", "latitude is required").notEmpty(),
+      check("longitude", "longitude is required").notEmpty(),
+    ],
+  ]),
   authenticateJWT,
   locationWeatherController.getLocationWeather,
 );

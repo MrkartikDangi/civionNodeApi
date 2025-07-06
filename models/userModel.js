@@ -52,8 +52,6 @@ User.addUserDetails = (postData) => {
 User.updateUserDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
-      latitude: postData.latitude,
-      longitude: postData.longitude,
       password: postData.password,
       username: postData.username,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -75,7 +73,7 @@ User.updateUserLocation = (postData) => {
       latitude: postData.latitude,
       longitude: postData.longitude,
       updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-      updated_by: postData.user.userId
+      updated_by: postData.userId
 
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`

@@ -367,7 +367,7 @@ exports.addCompanyEmail = async (req, res) => {
         } else {
           db.rollback()
           return generic.error(req, res, {
-            message: `Failed to register ${email}`,
+            message: `Failed to register ${req.body.email}`,
           });
         }
       } else {
