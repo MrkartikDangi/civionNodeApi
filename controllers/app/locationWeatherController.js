@@ -37,6 +37,7 @@ exports.getLocationWeather = async (req, res) => {
     weatherInfo = await generic.getWeatherInfo(data)
 
     data.userId = req.body.user.userId
+    data.dateTime = req.body.user.dateTime
     let updateUserLatLong = await User.updateUserLocation(data)
     if (updateUserLatLong.affectedRows) {
       db.commit()

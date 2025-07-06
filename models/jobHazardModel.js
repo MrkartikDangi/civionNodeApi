@@ -1,25 +1,31 @@
-const { default: mongoose } = require("mongoose");
+const db = require("../config/db")
+const moment = require('moment')
 
-const UserInfoSchemaJobHazard = new mongoose.Schema(
-  {
-    selectedDate: { type: Date, required: true },
-    time: { type: String, required: true },
-    location: { type: String, required: true, trim: true },
-    projectName: { type: String, required: true, trim: true },
-    description: { type: String, required: true, trim: true },
-    checkedItems: { type: Array, default: [] }, // Default to empty array if not provided
-    tasks: { type: Array, default: [] }, // Default to empty array if not provided
-    workers: { type: Array, required: true, validate: (v) => v.length > 0 }, // Must include at least one worker
-    reviewedBy: { type: String, required: true, trim: true },
-    reviewSignature: { type: String, required: true },
-    dateReviewed: { type: Date},
-  },
-  {
-    collection: "JobHazard",
-  },
-);
+const jobHazard = () => {}
 
-// Define the model based on the schema
-const JobHazard = mongoose.model("JobHazard", UserInfoSchemaJobHazard);
-
-module.exports = JobHazard;
+jobHazard.addJobHazardData = (postData) => {
+  return new Promise((resolve,reject) => {
+    let insertedData = {
+      schedule_id: postData.schedule_id,
+      selected_date: postData.selectedDate,
+      time: postData.time,
+      location: postData.location,
+      description: postData.description,
+      reviewed_by: postData.reviewedBy,
+      review_signature: postData.reviewSignature,
+      date_reviewed: postData.dateReviewed,
+      created_by: postData.user.userId,
+      created_on: postData.user.dateTime,
+    }
+    let query = `INSERT INTO ?? SET ?`
+    let queryValues = ['kps_jobhazard',insertedData]
+    db.query(query,queryValues,(err,res) => {
+      if(err){
+        reject(err)
+      }else{
+        resolve(res)
+      }
+    })
+  })
+}
+module.exports = jobHazard

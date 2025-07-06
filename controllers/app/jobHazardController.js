@@ -1,6 +1,7 @@
 const JobHazard = require("../../models/jobHazardModel");
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
+const db = require("../../config/db")
 
 exports.getJobHazardData = async (req, res) => {
   try {
@@ -27,53 +28,33 @@ exports.createJobHazard = async (req, res) => {
     });
   }
   try {
-    const {
-      selectedDate,
-      time,
-      location,
-      projectName,
-      description,
-      checkedItems,
-      tasks,
-      workers,
-      reviewedBy,
-      reviewSignature,
-      dateReviewed,
-    } = req.body;
+    db.beginTransaction()
+    const addJobHazardData = await JobHazard.addJobHazardData(req.body)
+    if (addJobHazardData.insertId) {
+      // if(req.body.){
 
-    const data = await JobHazard.create({
-      selectedDate,
-      time,
-      location,
-      projectName,
-      description,
-      checkedItems,
-      tasks,
-      workers,
-      reviewedBy,
-      reviewSignature,
-      dateReviewed,
-    });
-    return generic.success(req, res, {
-      message: "Job Hazard data submitted successfully.",
-      data: {
-        selectedDate,
-        time,
-        location,
-        projectName,
-        description,
-        checkedItems: checkedItems || [],
-        tasks: tasks || [],
-        workers,
-        reviewedBy,
-        reviewSignature,
-        dateReviewed,
-      },
-    });
+      // }
+      db.commit()
+      return generic.success(req, res, {
+        message: "Job Hazard data submitted successfully.",
+        data: {
+          id: addJobHazardData.insertId
+        },
+      });
+
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Job Hazard data submitted successfully.",
+      });
+
+    }
+
   } catch (error) {
+    db.rollback()
     return generic.error(req, res, {
-      message: "Error creating job hazard.",
-      details: error.message,
+      status: 500,
+      message: "Something went wrong.",
     });
   }
 };

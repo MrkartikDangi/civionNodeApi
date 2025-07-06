@@ -3,10 +3,7 @@ const { validationResult, matchedData } = require("express-validator");
 const Project = require("../../models/projectModel");
 const dailyEntry = require("../../models/dailyEntryModel");
 const dailyDiary = require("../../models/dailyDiaryModel");
-const path = require("path");
-const moment = require("moment-timezone");
 const fs = require("fs");
-const { dailyTemplate } = require("../../utils/pdfHandlerNew/htmlHandler");
 const db = require("../../config/db")
 
 
@@ -48,6 +45,7 @@ exports.createDailyEntry = async (req, res) => {
       if (req.body.equipments && req.body.equipments.length) {
         for (let row of req.body.equipments) {
           row.userId = req.body.user.userId
+          row.dateTime = req.body.user.dateTime
           row.dailyEntryId = dailyEntryId
           await dailyEntry.addEquipmentsData(row)
         }
@@ -55,6 +53,7 @@ exports.createDailyEntry = async (req, res) => {
       if (req.body.visitors && req.body.visitors.length) {
         for (let row of req.body.visitors) {
           row.userId = req.body.user.userId
+          row.dateTime = req.body.user.dateTime
           row.dailyEntryId = dailyEntryId
           await dailyEntry.addVisitorsData(row)
         }
@@ -62,11 +61,13 @@ exports.createDailyEntry = async (req, res) => {
       if (req.body.labours && req.body.labours.length) {
         for (let row of req.body.labours) {
           row.userId = req.body.user.userId
+          row.dateTime = req.body.user.dateTime
           row.dailyEntryId = dailyEntryId
           let addLabourData = await dailyEntry.addLaboursData(row)
           if (row.roles.length && addLabourData.insertId) {
             for (let x of row.roles) {
               x.userId = req.body.user.userId
+              x.dateTime = req.body.user.dateTime
               x.labour_id = addLabourData.insertId
               await dailyEntry.addLaboursRoleData(x)
             }

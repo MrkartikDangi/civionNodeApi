@@ -351,7 +351,7 @@ router.post(
       check("projectName", "projectName is required").notEmpty(),
       check("description", "description is required").notEmpty(),
       check("workers", "workers is required").notEmpty(),
-      check("reviewedBy", "reviewedBy is required").notEmpty(),
+      // check("reviewedBy", "reviewedBy is required").notEmpty(),
       check("reviewSignature", "reviewSignature is required").notEmpty(),
       // check("dateReviewed", "dateReviewed is required").notEmpty(),
     ],

@@ -22,8 +22,8 @@ exports.getWeeklyReport = async (req, res) => {
   try {
     let weeklyList = await weeklyEntry.getWeeklyEntry(req.body)
     if (weeklyList.length) {
-      for(let row of weeklyList){
-        let data = {weeklyEntryId: row.id}
+      for (let row of weeklyList) {
+        let data = { weeklyEntryId: row.id }
         row.images = await weeklyEntry.getWeeklyEntryImages(data)
         row.dailyDiary = await weeklyEntry.getWeeklyDailyDiary(data)
         row.dailyEntry = await weeklyEntry.getWeeklyDailyEntry(data)
@@ -77,6 +77,7 @@ exports.createWeeklyEntry = async (req, res) => {
           data = {
             weeklyEntryId: weeklyEntryId,
             userId: req.body.user.userId,
+            dateTime: req.body.user.dateTime,
             path: path.basename(row.path),
             folder_name: path.dirname(row.path)
           }
@@ -88,6 +89,7 @@ exports.createWeeklyEntry = async (req, res) => {
         for (let row of checkDailyDiaries) {
           data = {
             weeklyEntryId: weeklyEntryId,
+            dateTime: req.body.user.dateTime,
             userId: req.body.user.userId,
             dailyDiaryId: row.id
           }
@@ -99,6 +101,7 @@ exports.createWeeklyEntry = async (req, res) => {
         for (let row of checkDailyEntries) {
           data = {
             weeklyEntryId: weeklyEntryId,
+            dateTime: req.body.user.dateTime,
             userId: req.body.user.userId,
             dailyEntryId: row.id
           }

@@ -46,7 +46,7 @@ dailyDiary.createDailyDiary = (postData) => {
             reportNumber: postData.reportNumber,
             userId: postData.user.userId,
             created_by: postData.user.userId,
-            created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+            created_at: postData.user.dateTime
         }
         let query = `INSERT INTO ?? SET ?`
         let values = ['kps_daily_diary', insertedData]
@@ -74,10 +74,8 @@ dailyDiary.updateDailyDiary = (postData) => {
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
             userId: postData.user.userId,
-            created_by: postData.user.userId,
             updated_by: postData.user.userId,
-            created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-            updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+            updated_at: postData.user.dateTime,
         }
         let query = `UPDATE ?? SET ? WHERE id = ?`
         let values = ['kps_daily_diary', updatedValues, postData.id]

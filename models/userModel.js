@@ -36,7 +36,8 @@ User.addUserDetails = (postData) => {
       mileage_rate: postData.mileage_rate,
       allowanceDistance: postData.allowanceDistance,
       is_boss: postData.isBoss || false,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.user.dateTime,
+      created_by: postData.user.userId
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_users', insertedValues]
@@ -54,7 +55,7 @@ User.updateUserDetails = (postData) => {
     let updatedValues = {
       password: postData.password,
       username: postData.username,
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_at: postData.dateTime,
     }
     let query = `UPDATE ?? SET ? WHERE id = ? AND email = ?`
     let values = ['kps_users',updatedValues, postData.id,postData.email]
@@ -72,7 +73,7 @@ User.updateUserLocation = (postData) => {
     let updatedValues = {
       latitude: postData.latitude,
       longitude: postData.longitude,
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_at: postData.dateTime,
       updated_by: postData.userId
 
     }
@@ -92,7 +93,7 @@ User.updateCodeDetails = (postData) => {
     let updatedValues = {
       verificationCode: postData.verificationCode,
       codeExpiration: postData.codeExpiration,
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_at: postData.dateTime,
       updated_by: postData.id
 
     }
@@ -108,7 +109,6 @@ User.updateCodeDetails = (postData) => {
   })
 }
 User.getUserPasswordDetails = (postData) => {
-  console.log('postData', postData)
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM kps_users WHERE password = ?`
     let values = [postData.currentPassword]
@@ -131,7 +131,7 @@ User.updateUserPassword = (postData) => {
     let updatedValues = {
       password: postData.password,
       updated_by: postData.id,
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_at: postData.dateTime
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.id]
@@ -148,7 +148,7 @@ User.updateBossPermission = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
       is_boss: postData.is_boss,
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_at: postData.user.dateTime,
       updated_by: postData.user.userId
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`

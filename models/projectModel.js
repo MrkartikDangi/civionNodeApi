@@ -33,8 +33,7 @@ Project.addProjectData = (postData) => {
       endDate: postData.endDate ?? '',
       created_by: postData.user.userId,
       isActive: 1,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.user.dateTime,
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_project', insertedValues]
@@ -52,7 +51,7 @@ Project.deleteProject = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedData = {
       isActive: "1",
-      updated_at: moment(new Date()).format('YYYY-MM-Dd HH:mm:ss'),
+      updated_at: postData.user.dateTime,
       updated_by: postData.users.userid
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`

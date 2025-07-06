@@ -15,7 +15,7 @@ PhotoFiles.getPhotoFilesData = (postData) => {
     whereCondition += ` AND schedule_id = '${postData.filter.schedule_id}'`
   }
   return new Promise((resolve, reject) => {
-    let query = `SELECT * FROM kps_photofiles_doc WHERE 1 = 1 ${whereCondition}`
+    let query = `SELECT kps_photofiles_doc.*, IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(CONCAT('${process.env.Base_Url}',folder_name,'/', file_url), '') as file_url FROM kps_photofiles_doc WHERE 1 = 1 ${whereCondition}`
     let values = []
     db.query(query, values, (err, res) => {
       if (err) {
@@ -35,7 +35,7 @@ PhotoFiles.addPhotoFileData = (postData) => {
       folder_name: postData.folder_name,
       description: postData.description || '',
       created_by: postData.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ["kps_photofiles_doc", insertedData]

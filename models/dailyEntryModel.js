@@ -115,7 +115,7 @@ dailyEntry.createDailyEntry = (postData) => {
       description: postData.description,
       userId: postData.user.userId,
       created_by: postData.user.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.user.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry', insertedData]
@@ -138,7 +138,7 @@ dailyEntry.addEquipmentsData = (postData) => {
       hours: postData.hours,
       total_hours: postData.totalHours,
       created_by: postData.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_equipments', insertedData]
@@ -162,7 +162,7 @@ dailyEntry.addVisitorsData = (postData) => {
       hours: postData.hours,
       total_hours: postData.totalHours,
       created_by: postData.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_visitors', insertedData]
@@ -182,7 +182,7 @@ dailyEntry.addLaboursData = (postData) => {
       daily_entry_id: postData.dailyEntryId,
       contractor_name: postData.contractorName,
       created_by: postData.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_labours', insertedData]
@@ -205,7 +205,7 @@ dailyEntry.addLaboursRoleData = (postData) => {
       hours: postData.hours,
       total_hours: postData.totalHours,
       created_by: postData.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_labour_roles', insertedData]

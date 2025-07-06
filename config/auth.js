@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const generic = require("./genricFn/common")
 const User = require("../models/userModel")
+const moment = require("moment")
 
 module.exports = {
   authenticateJWT: async (req, res, next) => {
@@ -37,6 +38,7 @@ module.exports = {
       req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
       req.body.user.latitude = getUserDetails[0]?.latitude
       req.body.user.longitude = getUserDetails[0]?.longitude
+      req.body.user.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
     }
     next();
   },

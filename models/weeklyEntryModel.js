@@ -99,7 +99,7 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       contractAdministrator: postData.contractAdministrator || null,
       supportCA: postData.supportCA || null,
       component: postData.component || null,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.user.dateTime,
       created_by: postData.user.userId
     }
     let query = `INSERT INTO ?? SET ?`
@@ -118,7 +118,7 @@ weeklyEntry.addWeeklyDailyEntry = (postData) => {
     let insertedData = {
       weeklyEntryId: postData.weeklyEntryId,
       dailyEntryId: postData.dailyEntryId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.dateTime,
       created_by: postData.userId
     }
     let query = `INSERT INTO ?? SET ?`
@@ -137,7 +137,7 @@ weeklyEntry.addWeeklyDailyDiary = (postData) => {
     let insertedData = {
       weeklyEntryId: postData.weeklyEntryId,
       dailyDiaryId: postData.dailyDiaryId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.dateTime,
       created_by: postData.userId
     }
     let query = `INSERT INTO ?? SET ?`
@@ -157,7 +157,7 @@ weeklyEntry.addWeeklyImages = (postData) => {
       weeklyEntryId: postData.weeklyEntryId,
       path: postData.path,
       folder_name: postData.folder_name || 'weeklyEntry',
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.dateTime,
       created_by: postData.userId
     }
     let query = `INSERT INTO ?? SET ?`

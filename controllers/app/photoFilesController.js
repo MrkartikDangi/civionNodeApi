@@ -70,16 +70,9 @@ exports.deleteAttachemnts = async (req, res) => {
 exports.getPhotoFiles = async (req, res) => {
   try {
     const getPhotoFilesData = await PhotoFiles.getPhotoFilesData(req.body);
-    let data = [];
-    if (getPhotoFilesData.length) {
-      data = getPhotoFilesData.map((x) => {
-        x.file_url = `${process.env.Base_Url}/${x.folder_name}/${x.file_url}`;
-        return x;
-      });
-    }
     return generic.success(req, res, {
       message: "photofiles data retrieved successfully.",
-      data: data,
+      data: getPhotoFilesData,
     });
   } catch (error) {
     return generic.error(req, res, {
@@ -91,16 +84,9 @@ exports.getPhotoFiles = async (req, res) => {
 exports.getPhotoFilesByUserId = async (req, res) => {
   try {
     const photos = await PhotoFiles.getPhotoFilesData({ filter: { userId: req.body.user.userId } });
-    let data = [];
-    if (photos && photos.length > 0) {
-      data = photos.map((x) => {
-        x.file_url = `${process.env.Base_Url}/${x.folder_name}/${x.file_url}`;
-        return x;
-      });
-    }
     return generic.success(req, res, {
       message: "photofiles data retrieved successfully.",
-      data: data,
+      data: photos,
     });
   } catch (error) {
     return generic.error(req, res, {
@@ -124,6 +110,7 @@ exports.createPhotoFiles = async (req, res) => {
       for (let row of req.body.imageurl) {
         row.schedule_id = req.body.schedule_id
         row.userId = req.body.user.userId
+        row.dateTime = req.body.user.dateTime
         row.fileName = path.basename(row.path);
         row.folder_name = path.dirname(row.path);
         await PhotoFiles.addPhotoFileData(row)

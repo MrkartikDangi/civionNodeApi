@@ -12,11 +12,6 @@ const db = require("../../config/db")
 exports.getScheduleData = async (req, res) => {
   try {
     const schedulesData = await Schedule.getScheduleData(req.body)
-    if (schedulesData.length) {
-      for (let x of schedulesData) {
-        x.pdfUrl = `${process.env.Base_Url}/${x.folder_name}/${x.pdfUrl}`;
-      }
-    }
     return generic.success(req, res, {
       message: "Schedule data reterived successfully",
       data: schedulesData,

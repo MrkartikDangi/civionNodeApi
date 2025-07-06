@@ -9,7 +9,7 @@ Logo.getLogosList = (postData) => {
     if (postData.filter && postData.filter.logoid) {
       whereCondition += ` AND id = ${postData.filter.logoid}`
     }
-    let query = `SELECT * FROM kps_logos WHERE is_active = ? ${whereCondition}`
+    let query = `SELECT kps_logos.*, IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(CONCAT('${process.env.Base_Url}',folder_name,'/', logoUrl), '') as file_url FROM kps_logos WHERE is_active = ? ${whereCondition}`
     let values = ['1']
     db.query(query, values, (err, res) => {
       if (err) {
@@ -28,7 +28,7 @@ Logo.addLogos = (postData) => {
       logoUrl: postData.logoUrl ?? 'Unknown URL',
       is_active: '1',
       created_by: postData.userId,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_logos', insertedValues]
@@ -48,7 +48,7 @@ Logo.editLogo = (postData) => {
       folder_name: postData.folder_name ?? 'default',
       logoUrl: postData.logoUrl ?? 'Unknown URL',
       is_active: '1',
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updated_at: postData.dateTime,
       updated_by: postData.userId
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`

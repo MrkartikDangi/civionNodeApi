@@ -34,6 +34,7 @@ exports.registerUser = async (req, res) => {
         });
       }
       req.body.id = existingUser[0]?.id
+      req.body.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
       const updateUserDetails = await User.updateUserDetails(req.body)
       if (updateUserDetails.affectedRows) {
         db.commit()
@@ -183,6 +184,7 @@ exports.forgotPassword = async (req, res) => {
 
     let updatedCode = {
       id: user[0].id,
+      dateTime: req.header("dateTime") ? moment.utc(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       verificationCode: code,
       codeExpiration: expiration
     }
@@ -284,6 +286,7 @@ exports.resetPassword = async (req, res) => {
     const encryptPassword = await generic.encodeToBase64(req.body.newPassword)
     let data = {
       id: user[0].id,
+      dateTime: req.header("dateTime") ? moment.utc(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       password: encryptPassword
     }
     let updateUserPassword = await User.updateUserPassword(data)
@@ -416,6 +419,7 @@ exports.changePassword = async (req, res) => {
         let newPassword = await generic.encodeToBase64(req.body.newPassword)
         let data = {
           id: checkPrevPass[0]?.id,
+          dateTime: req.body.user.dateTime,
           password: newPassword,
         }
         let updateUserPassword = await User.updateUserPassword(data)

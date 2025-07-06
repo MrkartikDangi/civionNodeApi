@@ -22,17 +22,12 @@ expense.getExpenseData = (postData) => {
     if (postData.filter && postData.filter.mileageStatus) {
       whereCondition += ` AND kps_expense.mileageStatus = '${postData.filter.mileageStatus}'`
     }
-    let query = `SELECT  kps_expense.*,kps_users.username,kps_users.email FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId WHERE 1 = 1 ${whereCondition}`
+    let query = `SELECT  kps_expense.*, IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(CONCAT('${process.env.Base_Url}',folder_name,'/', receipt), '') as receipt,kps_users.username,kps_users.email FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
-        if (res.length) {
-          for (let x of res) {
-            x.receipt = `${process.env.Base_Url}/${x.folder_name}/${x.receipt}`
-          }
-        }
         resolve(res)
       }
 
@@ -57,17 +52,12 @@ expense.getExpenseType = (postData) => {
 }
 expense.getExpenseTypeImage = (postData) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT  id,path,folder_name,created_by FROM kps_expense_type_image WHERE expense_type_id = ?`
+    let query = `SELECT  id,path,folder_name,created_by , IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense_type_image.folder_name,'/', kps_expense_type_image.path), '') as file_url FROM kps_expense_type_image WHERE expense_type_id = ?`
     let queryValues = [postData.expense_type_id]
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
-        if (res.length) {
-          for (let x of res) {
-            x.path = `${process.env.Base_Url}/${x.folder_name}/${x.path}`
-          }
-        }
         resolve(res)
       }
 
@@ -94,7 +84,7 @@ expense.addExpense = (postData) => {
       expenseAmount: postData.expenseAmount || null,
       mileageStatus: postData.mileageStatus || 'Pending',
       expenseStatus: postData.expenseStatus || 'Pending',
-      createdAt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      createdAt: postData.user.dateTime,
       created_by: postData.user.userId
     }
     let query = `INSERT INTO ?? SET ?`
@@ -115,7 +105,7 @@ expense.addExpenseType = (postData) => {
       title: postData.title || null,
       amount: postData.amount,
       category: postData.category || null,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.dateTime,
       created_by: postData.userId
     }
     let query = `INSERT INTO ?? SET ?`
@@ -135,7 +125,7 @@ expense.addExpenseTypeImages = (postData) => {
       expense_type_id: postData.expenseTypeId,
       path: postData.url || null,
       folder_name: postData.folder_name,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      created_at: postData.dateTime,
       created_by: postData.userId
     }
     let query = `INSERT INTO ?? SET ?`
@@ -153,7 +143,7 @@ expense.updateExpenseMileageStatus = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
       [postData.key]: postData.status || "Pending",
-      updatedAt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      updatedAt: postData.dateTime,
       updated_by: postData.userId
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`

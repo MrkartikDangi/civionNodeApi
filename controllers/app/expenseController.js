@@ -23,6 +23,7 @@ exports.addExpense = async (req, res) => {
       if (req.body.expenseType && req.body.expenseType.length) {
         for (let row of req.body.expenseType) {
           row.expenseId = expenseId
+          row.dateTime = req.body.user.dateTime
           row.userId = req.body.user.userId
           const addExpenseType = await expense.addExpenseType(row)
           if (addExpenseType.insertId && row.images.length) {
@@ -30,6 +31,7 @@ exports.addExpense = async (req, res) => {
               x.expenseTypeId = addExpenseType.insertId
               x.url = path.basename(x.path)
               x.folder_name = path.dirname(x.path)
+              x.dateTime = req.body.user.dateTime
               x.userId = req.body.user.userId
               await expense.addExpenseTypeImages(x)
             }
@@ -118,6 +120,7 @@ exports.expenseApprove = async (req, res) => {
     const data = {
       expense_id: req.body.expense_id,
       userId: req.body.user.userId,
+      dateTime: req.body.user.dateTime,
       key: [`${type}Status`],
       status: req.body.status
     };
@@ -181,7 +184,6 @@ exports.expenseApprove = async (req, res) => {
 
     }
   } catch (error) {
-    console.log('error',error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

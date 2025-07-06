@@ -3,20 +3,14 @@ const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const path = require("path");
 const db = require("../../config/db")
+const moment = require("moment")
 
 exports.getLogoList = async (req, res) => {
   try {
     const logos = await Logo.getLogosList(req.body);
-    let result = [];
-    if (logos) {
-      result = logos.map((x) => {
-        x.file_url = `${process.env.Base_Url}/${x.folder_name}/${x.logoUrl}`;
-        return x;
-      });
-    }
     return generic.success(req, res, {
       message: "logos list.",
-      data: result,
+      data: logos,
     });
   } catch (error) {
     return generic.error(req, res, {
@@ -38,7 +32,7 @@ exports.addLogo = async (req, res) => {
     db.beginTransaction()
     let logoUrl = path.basename(req.body.fileUrl);
     let folder_name = path.dirname(req.body.fileUrl);
-    const newLogo = await Logo.addLogos({ schedule_id: req.body.schedule_id, companyName: req.body.companyName, folder_name: folder_name, logoUrl: logoUrl, userId: req.body.user.userId });
+    const newLogo = await Logo.addLogos({ schedule_id: req.body.schedule_id, companyName: req.body.companyName, folder_name: folder_name, logoUrl: logoUrl, userId: req.body.user.userId, dateTime: req.body.user.dateTime });
     if (newLogo.insertId) {
       db.commit()
       return generic.success(req, res, {
@@ -54,7 +48,6 @@ exports.addLogo = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('eeror', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -86,7 +79,7 @@ exports.editLogo = async (req, res) => {
 
     let logoUrl = path.basename(req.body.fileUrl);
     let folder_name = path.dirname(req.body.fileUrl);
-    const editLogo = await Logo.editLogo({ companyName: req.body.companyName, folder_name: folder_name, logoUrl: logoUrl, id: req.body.id, schedule_id: req.body.schedule_id, userId: req.body.user.userId });
+    const editLogo = await Logo.editLogo({ companyName: req.body.companyName, folder_name: folder_name, logoUrl: logoUrl, id: req.body.id, schedule_id: req.body.schedule_id, userId: req.body.user.userId, dateTime: req.body.user.dateTime });
     if (editLogo.affectedRows) {
       db.commit()
       return generic.success(req, res, {
@@ -144,7 +137,6 @@ exports.deleteLogo = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('eeror', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
