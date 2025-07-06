@@ -69,7 +69,14 @@ exports.deleteAttachemnts = async (req, res) => {
 
 exports.getPhotoFiles = async (req, res) => {
   try {
-    const data = await PhotoFiles.getPhotoFilesData(req.body);
+    const getPhotoFilesData = await PhotoFiles.getPhotoFilesData(req.body);
+    let data = [];
+    if (getPhotoFilesData.length) {
+      data = getPhotoFilesData.map((x) => {
+        x.file_url = `${process.env.Base_Url}/${x.folder_name}/${x.file_url}`;
+        return x;
+      });
+    }
     return generic.success(req, res, {
       message: "photofiles data retrieved successfully.",
       data: data,
