@@ -365,7 +365,6 @@ router.post(
   "/logos/addLogo",
   oneOf([
     [
-      check("schedule_id", "schedule_id is required").notEmpty(),
       check("companyName", "companyName is required").notEmpty(),
       check("fileUrl", "fileUrl is required").notEmpty(),
     ],
@@ -377,7 +376,6 @@ router.post(
   "/logos/editLogo",
   oneOf([
     [
-      check("schedule_id", "schedule_id is required").notEmpty(),
       check("companyName", "companyName is required").notEmpty(),
       check("fileUrl", "fileUrl is required").notEmpty(),
     ],

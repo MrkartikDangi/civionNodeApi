@@ -9,9 +9,6 @@ Logo.getLogosList = (postData) => {
     if (postData.filter && postData.filter.logoid) {
       whereCondition += ` AND id = ${postData.filter.logoid}`
     }
-    if (postData.filter && postData.filter.schedule_id) {
-      whereCondition += ` AND schedule_id = ${postData.filter.schedule_id}`
-    }
     let query = `SELECT * FROM kps_logos WHERE is_active = ? ${whereCondition}`
     let values = ['1']
     db.query(query, values, (err, res) => {
@@ -26,7 +23,6 @@ Logo.getLogosList = (postData) => {
 Logo.addLogos = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedValues = {
-      schedule_id: postData.schedule_id,
       companyName: postData.companyName ?? 'default',
       folder_name: postData.folder_name ?? 'default',
       logoUrl: postData.logoUrl ?? 'Unknown URL',
@@ -48,7 +44,6 @@ Logo.addLogos = (postData) => {
 Logo.editLogo = (postData) => {
   return new Promise((resolve, reject) => {
     let updatedValues = {
-      schedule_id: postData.schedule_id,
       companyName: postData.companyName ?? 'default',
       folder_name: postData.folder_name ?? 'default',
       logoUrl: postData.logoUrl ?? 'Unknown URL',
