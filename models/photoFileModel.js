@@ -11,6 +11,9 @@ PhotoFiles.getPhotoFilesData = (postData) => {
   if (postData.filter && postData.filter.id) {
     whereCondition += ` AND id = '${postData.filter.id}'`
   }
+  if (postData.filter && postData.filter.schedule_id) {
+    whereCondition += ` AND schedule_id = '${postData.filter.schedule_id}'`
+  }
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM kps_photofiles_doc WHERE 1 = 1 ${whereCondition}`
     let values = []
