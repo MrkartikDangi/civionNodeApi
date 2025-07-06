@@ -433,7 +433,6 @@ router.post(
 router.post(
   "/schedules/getScheduleData",
   authenticateJWT,
-  isBoss,
   scheduleController.getScheduleData,
 );
 router.post(
