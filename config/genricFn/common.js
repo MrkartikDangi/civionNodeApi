@@ -109,7 +109,7 @@ Generic.uploadAttachment = async (postData) => {
         uploadedData.push({
           type: postData.type,
           fileName: fileName,
-          fileUrl: `${process.env.Base_Url}/${sanitizeFileName}`,
+          fileUrl: `${process.env.Base_Url}${sanitizeFileName}`,
         });
         fs.unlinkSync(`${row.path}`);
         status = true;

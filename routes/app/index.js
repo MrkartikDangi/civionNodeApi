@@ -179,17 +179,6 @@ router.post(
   userController.resetPassword,
 );
 router.get("/auth/profile", authenticateJWT, userController.profile);
-router.post(
-  "/auth/addCompanyEmail",
-  oneOf([
-    [
-      check("email", "email is required").notEmpty(),
-      check('isBoss', 'isBoss is required').notEmpty()
-    ],
-  ]),
-  authenticateJWT,
-  userController.addCompanyEmail,
-);
 
 router.post(
   "/upload/uploadAttachment",

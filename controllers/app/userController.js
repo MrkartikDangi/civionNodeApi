@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const User = require("../../models/userModel");
-const Email = require("../../models/registeredEmail");
 const db = require("../../config/db")
 const moment = require("moment")
 
@@ -329,65 +328,6 @@ exports.profile = async (req, res) => {
       },
     });
   } catch (error) {
-    return generic.error(req, res, {
-      status: 500,
-      message: "Something went wrong !"
-    });
-  }
-};
-exports.addCompanyEmail = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const x = matchedData(req);
-    return generic.validationError(req, res, {
-      message: "Validation failed",
-      validationObj: errors.mapped(),
-    });
-  }
-
-  try {
-    db.beginTransaction()
-    let checkIsAdmin = req.body.user.isBoss;
-    req.body.email = req.body.email.toLowerCase()
-    if (checkIsAdmin) {
-      const regex = /^[a-zA-Z0-9._%+-]+@kps\.ca$/;
-      const isValidEmail = regex.test(req.body.email);
-      if (!isValidEmail) {
-        db.rollback()
-        return generic.error(req, res, {
-          message: `${req.body.email} :- Invalid email. Only emails from the domain 'kps.ca' are allowed`,
-        });
-      }
-      const existingEmail = await Email.checkExisitingMail(req.body)
-      if (!existingEmail.length) {
-        let result = await Email.addCompanyEmail(req.body);
-        if (result.insertId) {
-          db.commit()
-          return generic.success(req, res, {
-            message: "email registered successfully",
-            data: req.body.email,
-          });
-        } else {
-          db.rollback()
-          return generic.error(req, res, {
-            message: `Failed to register ${req.body.email}`,
-          });
-        }
-      } else {
-        db.rollback()
-        return generic.error(req, res, {
-          message: `${req.body.email} is already exists`,
-        });
-      }
-    } else {
-      db.rollback()
-      return generic.error(req, res, {
-        message: `You do not have access to perform this operation!`,
-        error: "access denied",
-      });
-    }
-  } catch (error) {
-    db.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
