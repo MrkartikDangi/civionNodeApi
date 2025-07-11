@@ -75,6 +75,20 @@ Logo.deleteLogo = (postData) => {
     })
   })
 }
+Logo.getBannersList = (postData) => {
+  return new Promise((resolve, reject) => {
+    let query = `SELECT kb.name,kb.image_path,kb.created_at,kb.updated_at,kb.folder_name,kb.is_active, IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(CONCAT('${process.env.Base_Url}',folder_name,'/', image_path), '') as image_path FROM kps_banner as kb WHERE is_active = ? ORDER BY ordering ASC`
+    let values = ['1']
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+
 
 
 

@@ -4,6 +4,7 @@ const { validationResult, matchedData } = require("express-validator");
 const User = require("../../models/userModel");
 const Email = require("../../models/registeredEmail");
 const db = require("../../config/db")
+const moment = require("moment")
 
 exports.registerUser = async (req, res) => {
   const errors = validationResult(req);
@@ -155,7 +156,6 @@ exports.login = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"

@@ -2,6 +2,7 @@ const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const User = require("../../models/userModel")
 const db = require("../../config/db")
+const logo = require("../../models/logoModel")
 
 exports.getLocationWeather = async (req, res) => {
   const errors = validationResult(req);
@@ -35,6 +36,7 @@ exports.getLocationWeather = async (req, res) => {
       lastUpdated: null,
     };
     weatherInfo = await generic.getWeatherInfo(data)
+    let bannerInfo = await logo.getBannersList({})
 
     data.userId = req.body.user.userId
     data.dateTime = req.body.user.dateTime
@@ -52,6 +54,7 @@ exports.getLocationWeather = async (req, res) => {
             },
           },
           weather: weatherInfo,
+          bannerInfo: bannerInfo
         }
       });
     } else {

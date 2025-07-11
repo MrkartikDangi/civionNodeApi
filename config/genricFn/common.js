@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Schedule = require("../../models/scheduleModel");
 const Project = require("../../models/projectModel");
 const UserDetails = require("../../models/userModel");
@@ -444,7 +443,11 @@ Generic.getGeoCodeResponse = async (postData) => {
     let formattedAddress
 
     if (geocodeResponse.data.status === "OK") {
-      formattedAddress = geocodeResponse.data.results[0].formatted_address;
+      const components = geocodeResponse.data.results[0].address_components;
+      const city = components.find(c =>
+        c.types.includes("locality")
+      )?.long_name;
+      formattedAddress = city;
     }
     return formattedAddress
 
