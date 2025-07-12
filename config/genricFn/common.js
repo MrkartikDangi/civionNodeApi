@@ -1,4 +1,5 @@
 const Schedule = require("../../models/scheduleModel");
+const jwt = require("jsonwebtoken");
 const Project = require("../../models/projectModel");
 const UserDetails = require("../../models/userModel");
 const WeeklyModel = require("../../models/weeklyEntryModel");
@@ -480,6 +481,37 @@ Generic.getWeatherInfo = async (postData) => {
   } catch (error) {
     console.error("Weather API Error:", error.message);
   }
+}
+Generic.jwtVerify = (token, key) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, key, (err, user) => {
+      if (err) {
+        if (err.name === "TokenExpiredError") {
+          reject(
+            {
+              status: false,
+              statusCode: 403,
+              message: "Invalid token. Token has expired.",
+            }
+          )
+        }
+        reject({
+          status: false,
+          statusCode: 403,
+          message: "Invalid token.",
+        });
+      }
+      resolve({
+        status: true,
+        statusCode: 200,
+        message: "Token validation successfull",
+        data: {
+          userDetails: user
+        }
+      })
+
+    });
+  })
 }
 
 module.exports = Generic;
