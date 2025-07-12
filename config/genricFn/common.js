@@ -2,7 +2,7 @@ const Schedule = require("../../models/scheduleModel");
 const Project = require("../../models/projectModel");
 const UserDetails = require("../../models/userModel");
 const WeeklyModel = require("../../models/weeklyEntryModel");
-const MileageUser = require("../../models/MileageUserModel");
+const Mileage = require("../../models/mileageModel");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 const axios = require("axios");
@@ -338,15 +338,9 @@ Generic.generatePDF = async (htmlContent, outputPath) => {
 };
 Generic.getMileageExpense = async (userId, startDate, endDate) => {
   try {
-    const mileageUser = await MileageUser.findOne({ userId });
+    const mileageUser = await Mileage.getUserMileage({ filter: { userId: userId, startDate: startDate, endDate: endDate } });
     if (!mileageUser) return 0;
-
-    const trips = await Trip.find({
-      user_id: mileageUser._id,
-      date: { $gte: new Date(startDate), $lte: new Date(endDate) },
-    });
-
-    return trips.reduce((sum, trip) => sum + trip.expenses, 0);
+    return mileageUser.reduce((sum, trip) => sum + trip.amount, 0);
   } catch (error) {
     return 0;
   }

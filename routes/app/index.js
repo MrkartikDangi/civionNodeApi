@@ -466,10 +466,9 @@ router.post(
 );
 
 router.post(
-  "/mileage/calculate-mileage",
+  "/mileage/addUserMileage",
   oneOf([
     [
-      check("userId", "userId is required").notEmpty(),
       check("startLocation", "startLocation is required").notEmpty(),
       check("endLocation", "endLocation is required").notEmpty(),
       check("distance", "distance is required").notEmpty(),
@@ -480,16 +479,16 @@ router.post(
     ],
   ]),
   authenticateJWT,
-  mileageController.calculateMileage,
+  mileageController.addUserMileage,
 );
-router.get(
-  "/mileage/history/:userId",
+router.post(
+  "/mileage/getUserMileage",
   [
-    check("startDate", "startDate is required").notEmpty(),
-    check("endDate", "endDate is required").notEmpty()
+    check("filter.startDate", "filter.startDate is required").notEmpty(),
+    check("filter.endDate", "filter.endDate is required").notEmpty()
   ],
   authenticateJWT,
-  mileageController.getMileageHistory
+  mileageController.getUserMileage
 );
 
 router.get(
