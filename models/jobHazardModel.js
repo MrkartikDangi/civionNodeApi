@@ -51,7 +51,7 @@ jobHazard.addActivityData = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
       activityName: postData.activityName,
-      activity_types: postData.activity.length ? postData.activity.join(',') : null,
+      activity_types: postData.activities.length ? postData.activities.join(',') : null,
       job_hazard_id: postData.jobHazardId,
       created_by: postData.userId,
       created_at: postData.dateTime,
