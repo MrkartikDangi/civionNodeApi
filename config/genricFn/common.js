@@ -483,35 +483,27 @@ Generic.getWeatherInfo = async (postData) => {
   }
 }
 Generic.jwtVerify = (token, key) => {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, key, (err, user) => {
-      if (err) {
-        if (err.name === "TokenExpiredError") {
-          reject(
-            {
-              status: false,
-              statusCode: 403,
-              message: "Invalid token. Token has expired.",
-            }
-          )
+  try {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, key, (err, user) => {
+        if (err) {
+          reject(err);
         }
-        reject({
-          status: false,
-          statusCode: 403,
-          message: "Invalid token.",
-        });
-      }
-      resolve({
-        status: true,
-        statusCode: 200,
-        message: "Token validation successfull",
-        data: {
-          userDetails: user
-        }
-      })
+        resolve({
+          status: true,
+          statusCode: 200,
+          message: "Token validation successfull",
+          data: {
+            userDetails: user
+          }
+        })
 
-    });
-  })
+      });
+    })
+  } catch (error) {
+    throw new Error('failed to authenticate token')
+
+  }
 }
 
 module.exports = Generic;
