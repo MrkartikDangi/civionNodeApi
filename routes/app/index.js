@@ -325,24 +325,25 @@ router.post(
   invoiceController.generateInvoiceExcel,
 );
 
-router.get(
-  "/jha/fetch-job-hazard",
+router.post(
+  "/jobHazard/getJobHazard",
   authenticateJWT,
   jobHazardController.getJobHazardData,
 );
 router.post(
-  "/jha/job-hazard",
+  "/jobHazard/saveJobHazard",
   oneOf([
     [
+      check("WorkerName", "WorkerName is required").notEmpty(),
       check("selectedDate", "selectedDate is required").notEmpty(),
       check("time", "time is required").notEmpty(),
       check("location", "location is required").notEmpty(),
       check("projectName", "projectName is required").notEmpty(),
       check("description", "description is required").notEmpty(),
-      check("workers", "workers is required").notEmpty(),
-      // check("reviewedBy", "reviewedBy is required").notEmpty(),
-      check("reviewSignature", "reviewSignature is required").notEmpty(),
-      // check("dateReviewed", "dateReviewed is required").notEmpty(),
+      check("selectedActivities", "selectedActivities is required").notEmpty(),
+      check("siteOrientationChecked", "siteOrientationChecked is required").notEmpty(),
+      check("tasks", "tasks is required").notEmpty(),
+      check("toolBoxMeetingChecked", "toolBoxMeetingChecked is required").notEmpty(),
     ],
   ]),
   authenticateJWT,

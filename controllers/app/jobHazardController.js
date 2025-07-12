@@ -5,7 +5,7 @@ const db = require("../../config/db")
 
 exports.getJobHazardData = async (req, res) => {
   try {
-    const data = await JobHazard.find();
+    const data = await JobHazard.getJobHazardData(req.body);
     return generic.success(req, res, {
       message: "Job Hazard data retrieved successfully.",
       data: data,
@@ -31,9 +31,22 @@ exports.createJobHazard = async (req, res) => {
     db.beginTransaction()
     const addJobHazardData = await JobHazard.addJobHazardData(req.body)
     if (addJobHazardData.insertId) {
-      // if(req.body.){
-
-      // }
+      if (req.body.selectedActivities && req.body.selectedActivities.length) {
+        for (let row of req.body.selectedActivities) {
+          row.userId = req.body.user.userId
+          row.jobHazardId = addJobHazardData.insertId
+          row.dateTime = req.body.user.dateTime
+          await JobHazard.addActivityData(row)
+        }
+      }
+      if (req.body.tasks && req.body.tasks.length) {
+        for (let row of req.body.tasks) {
+          row.userId = req.body.user.userId
+          row.jobHazardId = addJobHazardData.insertId
+          row.dateTime = req.body.user.dateTime
+          await JobHazard.addTaskData(row)
+        }
+      }
       db.commit()
       return generic.success(req, res, {
         message: "Job Hazard data submitted successfully.",
