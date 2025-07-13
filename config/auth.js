@@ -20,6 +20,7 @@ module.exports = {
       }
       let authVerification = await generic.jwtVerify(token, process.env.JWT_SECRET)
       if (authVerification.status) {
+        console.log('req.header("dateTime")',req.header("dateTime"))
         req.body.user = authVerification.data.userDetails
         let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
         if (getUserDetails.length) {
