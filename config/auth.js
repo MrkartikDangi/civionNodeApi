@@ -21,6 +21,7 @@ module.exports = {
       let authVerification = await generic.jwtVerify(token, process.env.JWT_SECRET)
       if (authVerification.status) {
         req.body.user = authVerification.data.userDetails
+        console.log('req.header("dateTime")',req.header("dateTime"))
         let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
         if (getUserDetails.length) {
           req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
