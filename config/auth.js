@@ -20,14 +20,13 @@ module.exports = {
       }
       let authVerification = await generic.jwtVerify(token, process.env.JWT_SECRET)
       if (authVerification.status) {
-        console.log('req.header("dateTime")',req.header("dateTime"))
         req.body.user = authVerification.data.userDetails
         let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
         if (getUserDetails.length) {
           req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
           req.body.user.latitude = getUserDetails[0]?.latitude
           req.body.user.longitude = getUserDetails[0]?.longitude
-          req.body.user.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
+          req.body.user.dateTime = req.header("dateTime") ? moment(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
         }
         next();
 
