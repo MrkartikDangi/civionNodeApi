@@ -145,25 +145,23 @@ exports.deletePhotoFiles = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    const checkImageExists = await PhotoFiles.getPhotoFilesData({ filter: { id: req.body.id } });
+    if (req.body.photoFileId && req.body.photoFileId.length) {
+      for (let row of req.body.photoFileId) {
+        const checkImageExists = await PhotoFiles.getPhotoFilesData({ filter: { id: row } });
+        if (!checkImageExists.length) {
+          db.rollback()
+          return generic.error(req, res, {
+            message: "Image doesn't exist",
+            details: checkImageExists,
+          });
+        }
+        const dbDeleteResult = await PhotoFiles.deletePhotoFiles({ id: row });
+        if (dbDeleteResult.affectedRows) {
+          let fileUrl = `${checkImageExists[0].folder_name}/${checkImageExists[0].file_url}`;
+          await generic.deleteAttachmentFromS3(fileUrl);
 
-    if (!checkImageExists.length) {
-      db.rollback()
-      return generic.error(req, res, {
-        message: "Image doesn't exist",
-        details: checkImageExists,
-      });
-    }
+        }
 
-    const dbDeleteResult = await PhotoFiles.deletePhotoFiles(req.body);
-    if (dbDeleteResult.affectedRows) {
-      let fileUrl = `${checkImageExists[0].folder_name}/${checkImageExists[0].file_url}`;
-      const s3DeleteResult = await generic.deleteAttachmentFromS3(fileUrl);
-      if (!s3DeleteResult?.status) {
-        db.rollback()
-        return generic.error(req, res, {
-          message: "Image deleted from DB, but failed to delete from S3",
-        });
       }
       db.commit()
       return generic.success(req, res, {
@@ -173,8 +171,7 @@ exports.deletePhotoFiles = async (req, res) => {
     } else {
       db.rollback()
       return generic.error(req, res, {
-        message: "Failed to delete image from database",
-        details: dbDeleteResult,
+        message: "Provide image details for deletation",
       });
 
     }

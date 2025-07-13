@@ -206,7 +206,7 @@ router.post(
   "/photos/deletePhotoFiles",
   oneOf([
     [
-      check("id", "id is required").notEmpty()
+      check("photoFileId", "photoFileId is required").notEmpty()
     ],
   ]),
   authenticateJWT,

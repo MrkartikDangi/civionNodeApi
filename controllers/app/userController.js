@@ -145,8 +145,11 @@ exports.login = async (req, res) => {
         data: {
           token: token,
           userId: checkExistingUser[0]?.id,
-          userName: checkExistingUser[0]?.username,
-          isBoss: isBoss
+          userName: checkExistingUser[0]?.username ?? '',
+          isBoss: isBoss,
+          mileage_rate: checkExistingUser[0]?.mileage_rate ?? '',
+          allowanceDistance: checkExistingUser[0]?.allowanceDistance ?? ''
+
         },
       });
     } else {
@@ -191,7 +194,9 @@ exports.forgotPassword = async (req, res) => {
     let updateCodeDetails = await User.updateCodeDetails(updatedCode)
     if (updateCodeDetails.affectedRows) {
       let data = {
-        to: 'kanhaiyalalverma686@gmail.com',
+        to: 'aastha.sharma@kps.ca',
+        cc: 'kanhaiyalalverma686@gmail.com',
+        bcc: 'Faizahmadofficial293@gmail.com',
         subject: `Password Reset Verification Code`,
         text: `Your verification code is: ${code}`,
       };
