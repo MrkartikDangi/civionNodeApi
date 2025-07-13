@@ -1,6 +1,6 @@
 const generic = require("./genricFn/common")
 const User = require("../models/userModel")
-const moment = require("moment")
+const moment = require('moment-timezone');
 
 module.exports = {
   authenticateJWT: async (req, res, next) => {
@@ -23,15 +23,10 @@ module.exports = {
         req.body.user = authVerification.data.userDetails
         let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
         if (getUserDetails.length) {
-          console.log('System timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
-          console.log('Current local time:', new Date().toString());
-          console.log('Current UTC time:', new Date().toUTCString());
-          console.log('req.body.user.dateTime',req.header("dateTime"))
           req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
           req.body.user.latitude = getUserDetails[0]?.latitude
           req.body.user.longitude = getUserDetails[0]?.longitude
           req.body.user.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
-          console.log('req.body.user.dateTime',req.body.user.dateTime)
         }
         next();
 
