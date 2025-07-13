@@ -19,7 +19,6 @@ module.exports = {
         });
       }
       let authVerification = await generic.jwtVerify(token, process.env.JWT_SECRET)
-      console.log('req.header("dateTime")',req.header("dateTime"))
       if (authVerification.status) {
         req.body.user = authVerification.data.userDetails
         let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
@@ -29,7 +28,6 @@ module.exports = {
           req.body.user.longitude = getUserDetails[0]?.longitude
           req.body.user.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
         }
-        console.log('req.body.user.dateTime',req.body.user.dateTime)
         next();
 
       }
