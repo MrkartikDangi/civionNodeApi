@@ -117,7 +117,7 @@ exports.createPhotoFiles = async (req, res) => {
       }
       db.commit()
       return generic.success(req, res, {
-        message: "Photofiles added successfully",
+        message: "Photos Added Successfully.",
       });
     } else {
       db.rollback()

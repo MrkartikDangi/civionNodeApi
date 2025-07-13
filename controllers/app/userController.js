@@ -155,6 +155,7 @@ exports.login = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -352,7 +353,7 @@ exports.changePassword = async (req, res) => {
       });
     }
     req.body.password = await generic.encodeToBase64(req.body.currentPassword)
-    let checkPrevPass = await User.checkExistingUser({ filter: { password: req.body.password } })
+    let checkPrevPass = await User.checkExistingUser({ filter: { password: req.body.password, userId: req.body.user.userId } })
 
     if (checkPrevPass.length) {
       if (req.body.password == checkPrevPass[0]?.password) {
@@ -387,7 +388,7 @@ exports.changePassword = async (req, res) => {
     } else {
       db.rollback()
       return generic.error(req, res, {
-        message: "User details not found with provided current password",
+        message: "Your password is incorrect",
       });
 
     }
@@ -409,8 +410,15 @@ exports.addUserDetails = async (req, res) => {
     });
   }
   try {
-
     db.beginTransaction()
+    req.body.email = req.body.email.toLowerCase()
+    const regex = /^[a-zA-Z0-9._%+-]+@kps\.ca$/;
+    const isValidEmail = regex.test(req.body.email);
+    if (!isValidEmail) {
+      return generic.error(req, res, {
+        message: `${req.body.email} :- Invalid email. Only emails from the domain 'kps.ca' are allowed`,
+      });
+    }
     const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (user.length) {
       return generic.error(req, res, { message: `User with ${req.body.email} already exists ` });
