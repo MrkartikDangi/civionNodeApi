@@ -120,7 +120,6 @@ User.getUserPasswordDetails = (postData) => {
         if (res.length) {
           data = res[0]
         }
-        console.log('data', data)
         resolve(data)
       }
     })
