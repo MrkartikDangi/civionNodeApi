@@ -20,13 +20,13 @@ const userController = require("../../controllers/app/userController");
 const scheduleController = require("../../controllers/app/schedulesController");
 const mileageController = require("../../controllers/app/mileageController");
 const notificationController = require("../../controllers/app/notificationController");
+const generic = require("../../config/genricFn/common")
 
 function ensureDirExists(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
   }
 }
-
 // Define storage engine
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -62,6 +62,12 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // Limit to 5 MB
   },
 });
+
+// function to initialize onedrive 
+(callOneDrive = async () => {
+  await generic.initializeOneDrive();
+})
+callOneDrive()
 
 router.post("/projects/schedules",
   oneOf([

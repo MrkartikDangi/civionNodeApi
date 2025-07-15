@@ -7,15 +7,18 @@ const Mileage = require("../../models/mileageModel");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 const axios = require("axios");
-const db = require("../../config/db")
 const multer = require("multer");
+const { Client } = require('@microsoft/microsoft-graph-client');
+require('isomorphic-fetch');
+const oneDrive = require("../../models/oneDriveModel")
+const onedriveConfig = require("../oneDrive");
+const path = require("path");
 const {
   S3Client,
   DeleteObjectCommand,
   PutObjectCommand,
 } = require("@aws-sdk/client-s3");
 const fs = require("fs");
-const path = require("path");
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -45,20 +48,6 @@ const storage = multer.diskStorage({
 });
 
 var Generic = () => { };
-
-Generic.getProjectSchedules = async (postData) => {
-  return new Promise((resolve, reject) => {
-    let query = `SELECT kps_schedules.id, kps_schedules.pdfUrl, kps_schedules.month, kps_schedules.created_at, kps_project.id AS projectId, kps_project.projectName FROM kps_schedules  JOIN kps_project ON kps_schedules.projectId = kps_project.id WHERE (? IS NULL OR kps_schedules.projectId = ?);`
-    let values = [postData.projectId, postData.projectId]
-    db.query(query, values, (err, res) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(res)
-      }
-    })
-  })
-};
 
 Generic.deleteAttachmentFromS3 = async (key) => {
   const params = {
@@ -133,28 +122,28 @@ Generic.uploadAttachment = async (postData) => {
   }
 };
 
-Generic.validateReferences = async ({ projectId, userId, weeklyReportId }) => {
-  let project, user, weeklyData;
-  if (projectId) {
-    project = await Project.findById(projectId);
-    if (!project) {
-      return { status: false, message: "Project not found" };
-    }
-  }
-  if (userId) {
-    user = await UserDetails.findById(userId);
-    if (!user) {
-      return { status: false, message: "User not found" };
-    }
-  }
-  if (weeklyReportId) {
-    weeklyData = await WeeklyModel.findById(weeklyReportId);
-    if (!weeklyData) {
-      return { status: false, message: "Weekly Report not found" };
-    }
-  }
-  return { status: true, project, user, weeklyData };
-};
+// Generic.validateReferences = async ({ projectId, userId, weeklyReportId }) => {
+//   let project, user, weeklyData;
+//   if (projectId) {
+//     project = await Project.findById(projectId);
+//     if (!project) {
+//       return { status: false, message: "Project not found" };
+//     }
+//   }
+//   if (userId) {
+//     user = await UserDetails.findById(userId);
+//     if (!user) {
+//       return { status: false, message: "User not found" };
+//     }
+//   }
+//   if (weeklyReportId) {
+//     weeklyData = await WeeklyModel.findById(weeklyReportId);
+//     if (!weeklyData) {
+//       return { status: false, message: "Weekly Report not found" };
+//     }
+//   }
+//   return { status: true, project, user, weeklyData };
+// };
 
 Generic.success = async (_, res, successObject) => {
   return res.status(successObject?.status || 200).json({
@@ -389,22 +378,6 @@ Generic.decodeFromBase64 = async (str) => {
   const bytes = Uint8Array.from(atob(str), char => char.charCodeAt(0))
   return new TextDecoder().decode(bytes)
 }
-Generic.connection = async () => {
-  return new Promise((resolve, reject) => {
-    db.getConnection((err, conn) => {
-      if (err) return reject(err);
-      console.log('db is connected')
-
-      conn.beginTransaction(err => {
-        if (err) {
-          conn.release();
-          return reject(err);
-        }
-        resolve(conn);
-      });
-    });
-  });
-};
 Generic.parseCoordinate = (value, type) => {
   try {
     const num = typeof value === "string" ? parseFloat(value) : value;
@@ -505,5 +478,93 @@ Generic.jwtVerify = (token, key) => {
 
   }
 }
+Generic.getMimeType = async () => {
+  const extension = fileName.split('.').pop().toLowerCase();
+  const mimeTypes = {
+    pdf: 'application/pdf',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif'
+  };
+  return mimeTypes[extension] || 'application/octet-stream';
+}
+Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '') => {
+  try {
+    const accessToken = await oneDrive.getValidOneDriveToken();
+    const client = Client.init({
+      authProvider: (done) => done(null, accessToken)
+    });
+
+    const fileContent = fs.readFileSync(filePath);
+    const mimeType = Generic.getMimeType(fileName);
+    const uploadPath = folderPath ? `/${folderPath}/${fileName}` : `/${fileName}`;
+
+    const response = await client
+      .api(`/users/${onedriveConfig.driveEmail}/drive/root:${uploadPath}:/content`)
+      .header('Content-Type', mimeType)
+      .put(fileContent);
+
+    return {
+      success: true,
+      webUrl: response.webUrl,
+      id: response.id,
+      name: response.name
+    };
+  } catch (error) {
+    console.error('OneDriveModel Error:', error);
+    throw error;
+  }
+}
+Generic.initializeOneDrive = async () => {
+  try {
+    const existingToken = await oneDrive.getValidOneDriveToken();
+    if (existingToken.length) {
+      console.log('OneDrive is ready to use (using existing token)');
+    } else {
+      let deleteOneDriveExpiredToken = await oneDrive.deleteOneDriveExpiredToken();
+      if (deleteOneDriveExpiredToken.affectedRows) {
+        let result = await Generic.getAccessToken();
+        if(result.status){
+          console.log('OneDrive is ready to use (generated new token)');
+        }else{
+          throw new Error('Failed to generate one drive auth token');
+        }
+        
+      }else{
+        console.log('Failed to initialize one drive')
+      }
+
+    }
+  } catch (error) {
+    throw new Error('Failed to initialize one drive');
+  }
+}
+Generic.getAccessToken = async () => {
+  const params = new URLSearchParams();
+  params.append('client_id', onedriveConfig.clientId);
+  params.append('scope', onedriveConfig.scopes.join(' '));
+  params.append('client_secret', onedriveConfig.clientSecret);
+  params.append('grant_type', 'client_credentials');
+
+  try {
+    const response = await axios.post(onedriveConfig.authUrl, params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    let result = await oneDrive.saveOneDriveToken(response.data);
+    if (result.insertId) {
+      return { status: true, message: `OneDrive token Successfully generated` }
+    }else{
+      return {status:false , message:`Failed to generate one drive auth token`}
+    }
+  } catch (error) {
+    console.error('AuthService Error:', error.response?.data || error.message);
+    throw new Error('Failed to get access token');
+  }
+}
+
+
 
 module.exports = Generic;

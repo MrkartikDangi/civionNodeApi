@@ -1,5 +1,4 @@
 const mysql = require('mysql');
-
 let connection;
 
 function handleDisconnect() {
@@ -16,7 +15,7 @@ function handleDisconnect() {
   connection.connect(err => {
     if (err) {
       console.error('Error connecting:', err.code, err.message);
-      setTimeout(handleDisconnect, 2000); // Retry after delay
+      setTimeout(handleDisconnect, 2000);
     } else {
       console.log('Database connection established.');
     }
@@ -26,7 +25,7 @@ function handleDisconnect() {
     console.error('DB error', err);
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {
       console.log('Reconnecting...');
-      handleDisconnect(); // Reconnect
+      handleDisconnect();
     } else {
       throw err;
     }

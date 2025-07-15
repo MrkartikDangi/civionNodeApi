@@ -138,7 +138,7 @@ exports.login = async (req, res) => {
       const token = jwt.sign(
         { userId: checkExistingUser[0].id, isBoss },
         process.env.JWT_SECRET,
-        { expiresIn: "24h" },
+        { expiresIn: "720h" },
       );
       return generic.success(req, res, {
         message: "User logged in successfully",

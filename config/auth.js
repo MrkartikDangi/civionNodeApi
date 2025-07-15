@@ -31,7 +31,7 @@ module.exports = {
         next();
 
       }
-          // req.body.user.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+      // req.body.user.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
     } catch (error) {
       return generic.error(req, res, {
         status: 403,

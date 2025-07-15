@@ -4,7 +4,6 @@ dotenv.config();
 const cors = require("cors");
 const morgan = require("morgan");
 const indexAppRouter = require("./routes/app/index");
-const db = require("./config/db");
 
 const app = express();
 
@@ -33,5 +32,7 @@ app.use((err, req, res, next) => {
   if (err.status !== 403) return next();
   res.send("403 error :: Invalid Token");
 });
+
+
 
 module.exports = app;
