@@ -4,6 +4,7 @@ dotenv.config();
 const cors = require("cors");
 const morgan = require("morgan");
 const indexAppRouter = require("./routes/app/index");
+const indexWebRouter  = require("./routes/web/index")
 
 const app = express();
 
@@ -22,7 +23,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api", indexAppRouter);
+app.use("/app/api", indexAppRouter);
+app.use("/web/api", indexWebRouter);
+
 
 app.get("/", (req, res) => {
   res.send("Api is working");
