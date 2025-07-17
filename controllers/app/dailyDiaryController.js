@@ -1,6 +1,6 @@
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
-const Project = require("../../models/projectModel");
+const Schedule = require("../../models/scheduleModel")
 const dailyDiary = require("../../models/dailyDiaryModel");
 const dailyEntry = require("../../models/dailyEntryModel");
 const path = require("path");
@@ -17,6 +17,7 @@ exports.getDailyDiary = async (req, res) => {
       data: dailyDiaries,
     });
   } catch (error) {
+    console.log('error',error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -35,11 +36,11 @@ exports.createDailyDiary = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    const checkProjectExist = await Project.getProjectList({ filter: { projectId: req.body.projectId } })
-    if (!checkProjectExist) {
+     let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
+    if (!getScheduleData) {
       return generic.validationError(req, res, { message: "project does'nt exists" });
     }
-    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.userId, projectId: req.body.projectId, selectedDate: req.body.selectedDate } })
+    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } })
     if (existingDailyEntry.length) {
       db.rollback()
       return generic.error(req, res, {

@@ -22,8 +22,8 @@ exports.createDailyEntry = async (req, res) => {
     if (!checkProjectExist) {
       return generic.validationError(req, res, { message: "Invalid project ID, project not found" });
     }
-    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.user.userId, projectId: req.body.projectId, selectedDate: req.body.selectedDate } });
-    const existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, projectId: req.body.projectId, selectedDate: req.body.selectedDate } });
+    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
+    const existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
 
     if (existingDailyEntry.length) {
       db.rollback()
@@ -83,6 +83,7 @@ exports.createDailyEntry = async (req, res) => {
       });
 
     } else {
+      
       db.rollback()
       return generic.error(req, res, {
         message: "Failed to create daily entry",
@@ -90,6 +91,7 @@ exports.createDailyEntry = async (req, res) => {
     }
 
   } catch (error) {
+    console.log('error',error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -117,6 +119,7 @@ exports.getDailyEntry = async (req, res) => {
       data: dailyEntries,
     });
   } catch (error) {
+    console.log('error',error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

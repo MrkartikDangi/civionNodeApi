@@ -1,4 +1,5 @@
 const db = require("../config/db")
+const moment = require("moment")
 
 const oneDrive = () => {}
 
@@ -20,8 +21,8 @@ oneDrive.saveOneDriveToken = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedValues = {
       access_token: postData.access_token,
-      expires_at: new Date(Date.now() + expires_in * 1000),
-      created_at: postData.dateTime
+      expires_at: moment.utc().add(postData.expires_in, 'seconds').tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+      created_at: moment.utc(new Date()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_oneDriveToken', insertedValues]

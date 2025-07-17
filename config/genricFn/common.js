@@ -478,8 +478,9 @@ Generic.jwtVerify = (token, key) => {
 
   }
 }
-Generic.getMimeType = async () => {
+Generic.getMimeType = async (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
+  console.log('extension',extension)
   const mimeTypes = {
     pdf: 'application/pdf',
     jpg: 'image/jpeg',
@@ -489,21 +490,21 @@ Generic.getMimeType = async () => {
   };
   return mimeTypes[extension] || 'application/octet-stream';
 }
-Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '') => {
+Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '', subFolder = '') => {
   try {
-    const accessToken = await oneDrive.getValidOneDriveToken();
+    const getAccessToken = await oneDrive.getValidOneDriveToken();
     const client = Client.init({
-      authProvider: (done) => done(null, accessToken)
+      authProvider: (done) => done(null, getAccessToken[0]?.access_token)
     });
 
-    const fileContent = fs.readFileSync(filePath);
+    const fileContent = await axios.get(filePath, { responseType: 'arraybuffer' });
     const mimeType = Generic.getMimeType(fileName);
-    const uploadPath = folderPath ? `/${folderPath}/${fileName}` : `/${fileName}`;
+    const uploadPath = folderPath ? `/${folderPath}/${subFolder}/${fileName}` : `/${fileName}`;
 
     const response = await client
-      .api(`/users/${onedriveConfig.driveEmail}/drive/root:${uploadPath}:/content`)
+      .api(`/users/${onedriveConfig.driveEmail}/drive/root:/${uploadPath}:/content`)
       .header('Content-Type', mimeType)
-      .put(fileContent);
+      .put(fileContent.data);
 
     return {
       success: true,
@@ -525,13 +526,13 @@ Generic.initializeOneDrive = async () => {
       let deleteOneDriveExpiredToken = await oneDrive.deleteOneDriveExpiredToken();
       if (deleteOneDriveExpiredToken.affectedRows) {
         let result = await Generic.getAccessToken();
-        if(result.status){
+        if (result.status) {
           console.log('OneDrive is ready to use (generated new token)');
-        }else{
+        } else {
           throw new Error('Failed to generate one drive auth token');
         }
-        
-      }else{
+
+      } else {
         console.log('Failed to initialize one drive')
       }
 
@@ -541,6 +542,7 @@ Generic.initializeOneDrive = async () => {
   }
 }
 Generic.getAccessToken = async () => {
+  console.log('1')
   const params = new URLSearchParams();
   params.append('client_id', onedriveConfig.clientId);
   params.append('scope', onedriveConfig.scopes.join(' '));
@@ -556,8 +558,8 @@ Generic.getAccessToken = async () => {
     let result = await oneDrive.saveOneDriveToken(response.data);
     if (result.insertId) {
       return { status: true, message: `OneDrive token Successfully generated` }
-    }else{
-      return {status:false , message:`Failed to generate one drive auth token`}
+    } else {
+      return { status: false, message: `Failed to generate one drive auth token` }
     }
   } catch (error) {
     console.error('AuthService Error:', error.response?.data || error.message);

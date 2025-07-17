@@ -230,8 +230,8 @@ router.post(
   photoFileController.createPhotoFiles,
 );
 
-router.get(
-  "/diary/fetch-daily-diary",
+router.post(
+  "/diary/getDailyDiary",
   authenticateJWT,
   dailyDiaryController.getDailyDiary,
 );
@@ -240,7 +240,7 @@ router.post(
   "/diary/createDailyDiary",
   oneOf([
     [
-      check("projectId", "projectId is required").notEmpty(),
+      check("schedule_id", "schedule_id is required").notEmpty(),
       check("selectedDate", "selectedDate is required").notEmpty(),
       check(
         "ownerProjectManager",
@@ -257,7 +257,7 @@ router.post(
   dailyDiaryController.createDailyDiary,
 );
 
-router.get(
+router.post(
   "/diary/getDailyEntry",
   authenticateJWT,
   dailyEntryController.getDailyEntry,
@@ -267,7 +267,7 @@ router.post(
   "/daily/createDailyEntry",
   oneOf([
     [
-      check("projectId", "projectId is required").notEmpty(),
+      check("schedule_id", "schedule_id is required").notEmpty(),
       check("selectedDate", "selectedDate is required").notEmpty(),
       check("location", "location is required").notEmpty(),
       check("reportNumber", "reportNumber is required").notEmpty(),

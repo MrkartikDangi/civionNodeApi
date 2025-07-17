@@ -4,7 +4,8 @@ const PhotoFiles = require("../../models/photoFileModel");
 const Project = require("../../models/projectModel");
 const moment = require("moment");
 const path = require("path");
-const db = require("../../config/db")
+const db = require("../../config/db");
+const Schedule = require("../../models/scheduleModel");
 
 
 exports.uploadAttachement = async (req, res) => {
@@ -107,6 +108,8 @@ exports.createPhotoFiles = async (req, res) => {
   try {
     db.beginTransaction()
     if (req.body.imageurl && req.body.imageurl.length) {
+      // await generic.initializeOneDrive()
+      // let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
       for (let row of req.body.imageurl) {
         row.schedule_id = req.body.schedule_id
         row.userId = req.body.user.userId
@@ -114,6 +117,9 @@ exports.createPhotoFiles = async (req, res) => {
         row.fileName = path.basename(row.path);
         row.folder_name = path.dirname(row.path);
         await PhotoFiles.addPhotoFileData(row)
+        // let filePath = `${process.env.Base_Url}${row.folder_name}/${row.fileName}`
+        // let subFolder = `${getScheduleData[0]?.project_name}_${row.folder_name}`
+        // await generic.uploadFileToOneDrive(filePath, row.fileName, row.folder_name,subFolder)
       }
       db.commit()
       return generic.success(req, res, {
@@ -127,6 +133,7 @@ exports.createPhotoFiles = async (req, res) => {
 
     }
   } catch (error) {
+    console.log('error',error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,

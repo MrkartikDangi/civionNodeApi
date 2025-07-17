@@ -2,6 +2,7 @@ const JobHazard = require("../../models/jobHazardModel");
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const db = require("../../config/db")
+const oneDrive = require("../../models/oneDriveModel")
 
 exports.getJobHazardData = async (req, res) => {
   try {

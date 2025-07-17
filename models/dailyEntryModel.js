@@ -9,8 +9,8 @@ dailyEntry.getDailyEntry = (postData) => {
     if (postData.filter && postData.filter.userId) {
       whereCondition += ` AND userId = ${postData.filter.userId}`
     }
-    if (postData.filter && postData.filter.projectId) {
-      whereCondition += ` AND projectId = ${postData.filter.projectId}`
+    if (postData.filter && postData.filter.schedule_id) {
+      whereCondition += ` AND schedule_id = ${postData.filter.schedule_id}`
     }
     if (postData.filter && postData.filter.selectedDate) {
       whereCondition += ` AND selected_date = '${postData.filter.selectedDate}'`
@@ -18,8 +18,8 @@ dailyEntry.getDailyEntry = (postData) => {
     if (postData.filter && postData.filter.reportNumber) {
       whereCondition += ` AND reportNumber = '${postData.filter.reportNumber}'`
     }
-    let query = `SELECT kps_daily_entry.*,kps_project.projectName,kps_project.projectNumber,kps_project.owner FROM kps_daily_entry LEFT JOIN kps_project ON kps_daily_entry.projectId = kps_project.id WHERE kps_project.isActive = ? ${whereCondition}`
-    let queryValues = ["1"]
+    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,kps_schedules.project_name,kps_schedules.project_number,kps_schedules.owner FROM kps_daily_entry as kde LEFT JOIN kps_schedules ON kde.schedule_id = kde.id WHERE 1 = 1 ${whereCondition}`
+    let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
@@ -94,7 +94,7 @@ dailyEntry.getLabourRoleDetails = (postData) => {
 dailyEntry.createDailyEntry = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
-      projectId: postData.projectId,
+      schedule_id: postData.schedule_id,
       selected_date: postData.selectedDate,
       location: postData.location,
       on_shore: postData.onShore,
