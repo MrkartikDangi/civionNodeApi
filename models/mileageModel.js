@@ -18,7 +18,6 @@ mileage.getUserMileage = (postData) => {
         }
         let query = `SELECT km.*, IFNULL(DATE_FORMAT(km.date, '%Y-%m-%d %H:%i:%s'), '') AS date, IFNULL(DATE_FORMAT(km.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at, IFNULL((SELECT JSON_ARRAYAGG(JSON_OBJECT('latitude', coord.latitude, 'longitude', coord.longitude)) FROM kps_mileage_coordinates AS coord WHERE coord.mileage_id = km.id), JSON_ARRAY()) AS coordinates FROM kps_mileage AS km WHERE 1 = 1 ${whereCondition};`
         let values = []
-        console.log('query', query)
         db.query(query, values, (err, res) => {
             if (err) {
                 reject(err)
@@ -71,6 +70,24 @@ mileage.addUserMileageCoordinates = (postData) => {
         }
         let query = `INSERT INTO ?? SET ?`
         let values = ['kps_mileage_coordinates', insertedData]
+        db.query(query, values, (err, res) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(res)
+            }
+        })
+
+    })
+}
+mileage.updateMileageAppendStatus = (postData) => {
+    return new Promise((resolve, reject) => {
+        let updatedData = {
+            append_to_expense: 1,
+            updated_at: postData.dateTime,
+        }
+        let query = `UPDATE ?? SET ? WHERE id = ?`
+        let values = ['kps_mileage', updatedData, postData.id]
         db.query(query, values, (err, res) => {
             if (err) {
                 reject(err)

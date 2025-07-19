@@ -42,14 +42,19 @@ exports.addExpense = async (req, res) => {
             }
           }
         }
-        db.commit()
-        return generic.success(req, res, {
-          message: "Expense successfully created",
-          data: {
-            expenseId: addExpense.insertId
-          },
-        });
       }
+      if (mileageUser.length) {
+        for (let row of mileageUser) {
+          await mileage.updateMileageAppendStatus({ id: row.id, dateTime: req.body.user.dateTime })
+        }
+      }
+      db.commit()
+      return generic.success(req, res, {
+        message: "Expense successfully created",
+        data: {
+          expenseId: addExpense.insertId
+        },
+      });
     } else {
       db.rollback()
       return generic.success(req, res, {

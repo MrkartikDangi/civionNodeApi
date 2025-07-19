@@ -1,39 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>{{type}} Report Approved</title>
+  <meta charset="utf-8">
+  <title>{{type}} Report Approved</title>
 </head>
-<body>
-<div style="font-family: Arial, sans-serif; font-size: 14px;">
-    <p>Dear Tabworks,</p>
-    <p>The {{type}} report for <strong>{{employeeName}}</strong> has been approved.</p>
-    <p>Approved {{type}} amount: <strong>${{totalApprovedAmount}}</strong></p>
-    <p>Dates covered: <strong>{{startDate}} - {{endDate}}</strong></p>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-family: Arial, sans-serif; padding: 30px;">
+          <tr>
+            <td>
+              <h2 style="color: #333333; margin-top: 0;">{{type}} Report Approved</h2>
+              <p style="font-size: 14px; color: #555;">Dear Tabworks,</p>
+              <p style="font-size: 14px; color: #555;">The {{type}} report for <strong>{{employeeName}}</strong> has been approved.</p>
+              <p style="font-size: 14px; color: #555;">Approved {{type}} amount: <strong style="color: #2e7d32;">${{totalApprovedAmount}}</strong></p>
+              <p style="font-size: 14px; color: #555;">Dates covered: <strong>{{startDate}} - {{endDate}}</strong></p>
 
-    <p>This is approved for processing on the next available payrun.</p>
-    <p>Sincerely,<br>The {{type}} Approval System</p>
+              <p style="font-size: 14px; color: #555;">This is approved for processing on the next available payrun.</p>
 
-    <!-- Move images section to the end -->
-    {{#if images.length}}
-    <h3>Expense Images:</h3>
-    <ul>
-        {{#each images}}
-        <li style="margin-bottom: 15px;">
-            <a href="{{this.path}}" target="_blank" style="color: #1a73e8; text-decoration: none;">
-                <img src="{{this.path}}" 
-                     alt="Expense Receipt" 
-                     style="max-width: 300px; height: auto; border: 1px solid #ddd; padding: 5px;">
-                <br>
-                <span style="font-size: 12px; color: #666;">View full size</span>
-            </a>
-        </li>
-        {{/each}}
-    </ul>
-    {{else}}
-    <p>No images attached to this {{type}}.</p>
-    {{/if}}
+              <p style="font-size: 14px; color: #555; margin-bottom: 30px;">Sincerely,<br><strong>The {{type}} Approval System</strong></p>
 
-</div>
+              <!-- Expense Images Section -->
+              {{#if images.length}}
+              <h3 style="font-size: 16px; color: #333;">Expense Images</h3>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <ul style="padding-left: 0; list-style: none;">
+                      {{#each images}}
+                      <li style="margin-bottom: 20px;">
+                        <a href="{{this.path}}" target="_blank" style="text-decoration: none; color: #1a73e8;">
+                          <img src="{{this.path}}" alt="Expense Receipt" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                          <br>
+                          <span style="font-size: 12px; color: #888;">View full size</span>
+                        </a>
+                      </li>
+                      {{/each}}
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+              {{else}}
+              <p style="font-size: 14px; color: #999;">No images attached to this {{type}}.</p>
+              {{/if}}
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
