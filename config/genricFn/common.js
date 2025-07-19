@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const Project = require("../../models/projectModel");
 const UserDetails = require("../../models/userModel");
 const WeeklyModel = require("../../models/weeklyEntryModel");
+const fs = require("fs"); // Import the file system module
+const handlebars = require("handlebars");
 const Mileage = require("../../models/mileageModel");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
@@ -13,12 +15,12 @@ require('isomorphic-fetch');
 const oneDrive = require("../../models/oneDriveModel")
 const onedriveConfig = require("../oneDrive");
 const path = require("path");
+const expense = require("../../models/expenseModel")
 const {
   S3Client,
   DeleteObjectCommand,
   PutObjectCommand,
 } = require("@aws-sdk/client-s3");
-const fs = require("fs");
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -228,7 +230,7 @@ Generic.sendPdfBuffer = ({ res, filePath, fileName = "Daily_Report.pdf" }) => {
       .send({ status: "failed", message: "Error sending the PDF file." });
   });
 };
-Generic.sendApprovalEmail = async (to, subject, html) => {
+Generic.sendApprovalEmail = async (to, subject, html,cc,bcc) => {
   return new Promise((resolve, reject) => {
     let transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST_2,
@@ -246,6 +248,8 @@ Generic.sendApprovalEmail = async (to, subject, html) => {
     const mailOptions = {
       from: process.env.EMAIL_USER_2,
       to,
+      cc,
+      bcc,
       subject,
       html,
     };
@@ -480,7 +484,7 @@ Generic.jwtVerify = (token, key) => {
 }
 Generic.getMimeType = async (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
-  console.log('extension',extension)
+  console.log('extension', extension)
   const mimeTypes = {
     pdf: 'application/pdf',
     jpg: 'image/jpeg',
@@ -567,10 +571,64 @@ Generic.getAccessToken = async () => {
 }
 Generic.mergePdf = async (postData) => {
   try {
-    
+
   } catch (error) {
-    
+
   }
+}
+Generic.sendExpenseMileageMail = async (postData) => {
+  try {
+    const getUpdatedExpense = await expense.getExpenseData({ filter: { expense_id: postData.expense_id } })
+    const emailTemplatePath = path.join(
+      __dirname,
+      "../../view/payrollEmailTemplate.html",
+    );
+    const emailTemplateSource = fs.readFileSync(emailTemplatePath, "utf8");
+    const emailTemplate = handlebars.compile(emailTemplateSource);
+    let type = postData.type.charAt(0).toUpperCase() + postData.type.slice(1);
+    const getUpdatedExpenseType = await expense.getExpenseType({ expense_id: postData.expense_id })
+    let getExpenseTypeImages
+    if (getUpdatedExpenseType.length) {
+      getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: getUpdatedExpenseType[0]?.id })
+
+    }
+
+    const emailData = {
+      type: type,
+      employeeName: getUpdatedExpense[0]?.username,
+      totalApprovedAmount: postData.type == 'expense' ? getUpdatedExpense[0]?.expenseAmount.toFixed(2) : getUpdatedExpense[0]?.mileageAmount.toFixed(2),
+      startDate: getUpdatedExpense[0]?.startDate.toLocaleDateString("en-US"),
+      endDate: getUpdatedExpense[0]?.endDate.toLocaleDateString("en-US"),
+      images: postData.type == 'expense' && getExpenseTypeImages.length > 0 ? getExpenseTypeImages : [],
+    };
+
+    const emailHTML = emailTemplate(emailData);
+
+    let result = await Generic.sendApprovalEmail(
+      "kpdangi660@gmail.com",
+      `${type} Report Approved`,
+      emailHTML,
+      "kanhaiyalalverma686@gmail.com",
+      "Faizahmadofficial293@gmail.com"
+    );
+    if (result) {
+      return {
+        status: true,
+        message: `User ${type} is approved.`,
+      }
+
+    } else {
+      return {
+        status: false,
+        message: `failed to send ${type} mail.`,
+      }
+    }
+
+  } catch (error) {
+    throw new Error('Failed to send expense mileage mail', error);
+
+  }
+
 }
 
 

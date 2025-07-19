@@ -148,7 +148,7 @@ expense.updateExpenseMileageStatus = (postData) => {
       updated_by: postData.userId
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
-    let values = ['kps_expense', updatedValues, postData.userId]
+    let values = ['kps_expense', updatedValues, postData.expense_id]
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)

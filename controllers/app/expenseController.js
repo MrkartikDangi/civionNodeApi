@@ -10,7 +10,7 @@ const { validationResult, matchedData } = require("express-validator");
 exports.addExpense = async (req, res) => {
   try {
     db.beginTransaction()
-    const mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate } });
+    const mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate, append_to_expense: 0 } });
     if (!mileageUser) {
       req.body.mileageExpense = 0
     } else {
@@ -207,18 +207,66 @@ exports.updateExpenseItemStatus = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    const updateExpenseItemStatus = await expense.updateExpenseItemStatus(req.body)
-    if (updateExpenseItemStatus.affectedRows) {
-      db.commit()
-      return generic.success(req, res, {
-        message: "Item status updated successfully",
-      });
+    if (req.body.type == 'expense') {
+      const updateExpenseItemStatus = await expense.updateExpenseItemStatus(req.body)
+      if (updateExpenseItemStatus.affectedRows) {
+        const data = {
+          expense_id: req.body.expense_id,
+          userId: req.body.user.userId,
+          dateTime: req.body.user.dateTime,
+          key: 'expenseStatus',
+          status: req.body.status || 'Approved'
+        };
+        await expense.updateExpenseMileageStatus(data)
+        db.commit()
+        return generic.success(req, res, {
+          message: req.body.item_id !== "" ? "Item status updated successfully" : "Expense status updated successfully",
+        });
+      } else {
+        db.rollback()
+        return generic.error(req, res, {
+          message: "Failed to update item status",
+        });
+      }
     } else {
-      db.rollback()
-      return generic.error(req, res, {
-        message: "Failed to update item status",
-      });
+      const data = {
+        expense_id: req.body.expense_id,
+        userId: req.body.user.userId,
+        dateTime: req.body.user.dateTime,
+        key: 'mileageStatus',
+        status: req.body.status || 'Approved'
+      };
+      let result = await expense.updateExpenseMileageStatus(data)
+      if (result.affectedRows) {
+        if (data.status == 'Approved') {
+          let result = await generic.sendExpenseMileageMail({ expense_id: req.body.expense_id, type: req.body.type })
+          if (result) {
+            db.commit()
+            return generic.success(req, res, {
+              message: result.message,
+            });
+
+          } else {
+            db.rollback()
+            return generic.success(req, res, {
+              message: result.message,
+            });
+          }
+        } else {
+          db.commit()
+          return generic.success(req, res, {
+            message: "Mileage status updated successfully",
+          });
+        }
+      } else {
+        db.rollback()
+        return generic.error(req, res, {
+          message: "Failed to update mileage status",
+        });
+      }
+
     }
+
   } catch (error) {
     db.rollback()
     return generic.error(req, res, {

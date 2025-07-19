@@ -419,7 +419,8 @@ router.post(
     [
       check("expense_id", "expense_id is required").notEmpty(),
       check("item_id", "item_id is required"),
-      check("status", "status is required").notEmpty()
+      check("status", "status is required").notEmpty(),
+      check("type", "type is required").notEmpty(),
     ],
   ]),
   authenticateJWT,
