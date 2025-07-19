@@ -5,12 +5,17 @@ const mileage = require("../../models/mileageModel");
 const expense = require("../../models/expenseModel");
 const generic = require("../../config/genricFn/common");
 const db = require("../../config/db")
+const { validationResult, matchedData } = require("express-validator");
 
 exports.addExpense = async (req, res) => {
   try {
     db.beginTransaction()
-    req.body.mileageExpense = 500.00
-    // req.body.mileageExpense = await mileage.getMileageExpense({ userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate })
+    const mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate } });
+    if (!mileageUser) {
+      req.body.mileageExpense = 0
+    } else {
+      req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
+    }
     req.body.expenseAmount = req.body.expenseType.reduce(
       (sum, e) => sum + (Number(e.amount) || 0),
       0,
@@ -35,15 +40,15 @@ exports.addExpense = async (req, res) => {
               x.userId = req.body.user.userId
               await expense.addExpenseTypeImages(x)
             }
-            db.commit()
-            return generic.success(req, res, {
-              message: "Expense successfully created",
-              data: {
-                expenseId: addExpense.insertId
-              },
-            });
           }
         }
+        db.commit()
+        return generic.success(req, res, {
+          message: "Expense successfully created",
+          data: {
+            expenseId: addExpense.insertId
+          },
+        });
       }
     } else {
       db.rollback()
@@ -54,6 +59,7 @@ exports.addExpense = async (req, res) => {
     }
 
   } catch (error) {
+    console.log('errror', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -184,6 +190,37 @@ exports.expenseApprove = async (req, res) => {
 
     }
   } catch (error) {
+    return generic.error(req, res, {
+      status: 500,
+      message: "something went wrong!",
+    });
+  }
+};
+exports.updateExpenseItemStatus = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const x = matchedData(req);
+    return generic.validationError(req, res, {
+      message: "Validation failed",
+      validationObj: errors.mapped(),
+    });
+  }
+  try {
+    db.beginTransaction()
+    const updateExpenseItemStatus = await expense.updateExpenseItemStatus(req.body)
+    if (updateExpenseItemStatus.affectedRows) {
+      db.commit()
+      return generic.success(req, res, {
+        message: "Item status updated successfully",
+      });
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Failed to update item status",
+      });
+    }
+  } catch (error) {
+    db.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

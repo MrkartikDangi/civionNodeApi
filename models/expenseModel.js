@@ -37,7 +37,7 @@ expense.getExpenseData = (postData) => {
 }
 expense.getExpenseType = (postData) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT  id,title,amount,category,created_by FROM kps_expense_type WHERE expense_id = ?`
+    let query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
     let queryValues = [postData.expense_id]
     db.query(query, queryValues, (err, res) => {
       if (err) {
@@ -72,10 +72,10 @@ expense.addExpense = (postData) => {
     let insertedData = {
       userId: postData.user.userId,
       employeeName: postData.employeeName,
-      startDate: postData.startDate || null,
-      endDate: postData.endDate || null,
+      startDate: moment.utc(postData.startDate).format('YYYY-MM-DD HH:mm:ss') || null,
+      endDate: moment.utc(postData.endDate).format('YYYY-MM-DD HH:mm:ss') || null,
       expenditure: postData.expenditure || null,
-      projectId: postData.projectId || null,
+      schedule_id: postData.schedule_id || null,
       category: postData.category || null,
       task: postData.task || null,
       receipt: postData.pdfBaseName || null,
@@ -105,6 +105,7 @@ expense.addExpenseType = (postData) => {
       title: postData.title || null,
       amount: postData.amount,
       category: postData.category || null,
+      status: postData.status,
       created_at: postData.dateTime,
       created_by: postData.userId
     }
@@ -148,6 +149,31 @@ expense.updateExpenseMileageStatus = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_expense', updatedValues, postData.userId]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+expense.updateExpenseItemStatus = (postData) => {
+  return new Promise((resolve, reject) => {
+    let updatedValues = {
+      status: postData.status || "Pending",
+      updated_at: postData.dateTime,
+      updated_by: postData.userId
+    }
+    let query
+    let values
+    if (postData.item_id !== "") {
+      query = `UPDATE ?? SET ? WHERE id = ? AND expense_id = ?`
+      values = ['kps_expense_type', updatedValues, postData.item_id, postData.expense_id]
+    } else {
+      query = `UPDATE ?? SET ? WHERE expense_id = ? AND status = ?`
+      values = ['kps_expense_type', updatedValues, postData.expense_id, "Pending"]
+    }
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)

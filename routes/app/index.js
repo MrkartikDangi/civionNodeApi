@@ -20,6 +20,7 @@ const userController = require("../../controllers/app/userController");
 const scheduleController = require("../../controllers/app/schedulesController");
 const mileageController = require("../../controllers/app/mileageController");
 const notificationController = require("../../controllers/app/notificationController");
+const drawingController = require("../../controllers/app/drawingController")
 const generic = require("../../config/genricFn/common")
 
 function ensureDirExists(dirPath) {
@@ -412,6 +413,19 @@ router.post(
   isBoss,
   expenseController.expenseApprove,
 );
+router.post(
+  "/expense/updateExpenseItemStatus",
+   oneOf([
+    [
+      check("expense_id", "expense_id is required").notEmpty(),
+      check("item_id", "item_id is required"),
+      check("status", "status is required").notEmpty()
+    ],
+  ]),
+  authenticateJWT,
+  isBoss,
+  expenseController.updateExpenseItemStatus,
+);
 
 router.post(
   "/location/getLocationAndWeather",
@@ -501,6 +515,12 @@ router.get(
   "/notification/getNotifications",
   authenticateJWT,
   notificationController.getNotifications,
+);
+router.post(
+  "/drawing/mergePdf",
+  upload.fields([{ name: "originalPdf", maxCount: 1 }, { name: "mergingPdf", maxCount: 1 }]),
+  authenticateJWT,
+  drawingController.mergePdf,
 );
 
 module.exports = router;
