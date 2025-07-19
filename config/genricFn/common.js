@@ -542,7 +542,6 @@ Generic.initializeOneDrive = async () => {
   }
 }
 Generic.getAccessToken = async () => {
-  console.log('1')
   const params = new URLSearchParams();
   params.append('client_id', onedriveConfig.clientId);
   params.append('scope', onedriveConfig.scopes.join(' '));
@@ -564,6 +563,13 @@ Generic.getAccessToken = async () => {
   } catch (error) {
     console.error('AuthService Error:', error.response?.data || error.message);
     throw new Error('Failed to get access token');
+  }
+}
+Generic.mergePdf = async (postData) => {
+  try {
+    
+  } catch (error) {
+    
   }
 }
 
