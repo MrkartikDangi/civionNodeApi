@@ -33,7 +33,7 @@ User.addUserDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedValues = {
       email: postData.email,
-      mileage_rate: postData.mileage_rate,
+      mileage_rate: postData.mileageRate,
       allowanceDistance: postData.allowanceDistance,
       is_boss: postData.isBoss || false,
       created_at: postData.user.dateTime,
