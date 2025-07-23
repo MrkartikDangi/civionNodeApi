@@ -252,7 +252,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
     } else {
       db.commit()
       return generic.success(req, res, {
-        message: `${req.body.type} updated successfully`,
+        message: `User ${req.body.type} ${req.body.status}`,
       });
     }
 
