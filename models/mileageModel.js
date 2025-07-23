@@ -11,7 +11,7 @@ mileage.getUserMileage = (postData) => {
             whereCondition += ` AND km.user_id = ${postData.filter.userId}`
         }
         if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
-            whereCondition += ` AND km.date BETWEEN '${moment.utc(postData.filter.startDate).format('YYYY-MM-DD HH:mm:ss')}' AND '${moment.utc(postData.filter.endDate).format('YYYY-MM-DD HH:mm:ss')}'`
+            whereCondition += ` AND km.date BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}'`
         }
         if (postData.filter && postData.filter.append_to_expense) {
             whereCondition += ` AND km.append_to_expense = ${postData.filter.append_to_expense}`
@@ -117,6 +117,7 @@ mileage.updateMileageStatus = (postData) => {
             query = `UPDATE ?? SET ? WHERE append_to_expense = ? AND status = ?`
             values = ['kps_mileage', updatedValues, postData.expense_id, "Pending"]
         }
+
         db.query(query, values, (err, res) => {
             if (err) {
                 reject(err)

@@ -636,7 +636,6 @@ Generic.sendExpenseMileageMail = async (postData) => {
       emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.mileageAmount.toFixed(2) : 0
       emailData.images = images
     }
-    console.log('emailData', emailData)
 
     const emailHTML = emailTemplate(emailData);
 
