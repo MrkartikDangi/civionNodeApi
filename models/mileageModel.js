@@ -16,9 +16,7 @@ mileage.getUserMileage = (postData) => {
         if (postData.filter && postData.filter.mileage_ids) {
             whereCondition += ` AND km.id IN (${postData.filter.mileage_ids})`
         }
-        if (postData.filter && postData.filter.append_to_expense) {
-            whereCondition += ` AND km.append_to_expense = ${postData.filter.append_to_expense}`
-        }else{
+        if(postData.filter && postData.filter.type == 'expense'){
             whereCondition += ` AND km.append_to_expense = '0'`
         }
         let query = `SELECT km.*, IFNULL(DATE_FORMAT(km.date, '%Y-%m-%d %H:%i:%s'), '') AS date, IFNULL(DATE_FORMAT(km.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at, IFNULL((SELECT JSON_ARRAYAGG(JSON_OBJECT('latitude', coord.latitude, 'longitude', coord.longitude)) FROM kps_mileage_coordinates AS coord WHERE coord.mileage_id = km.id), JSON_ARRAY()) AS coordinates , ku.username FROM kps_mileage AS km LEFT JOIN kps_users ku ON ku.id = km.user_id WHERE 1 = 1 ${whereCondition};`

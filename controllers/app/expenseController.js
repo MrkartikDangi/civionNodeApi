@@ -12,7 +12,7 @@ exports.addExpense = async (req, res) => {
     db.beginTransaction()
     let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
     let data = {
-      filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate, append_to_expense: 0, mileage_ids: mileage_ids }
+      filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate, mileage_ids: mileage_ids, type: 'expense' }
     }
     if (mileage_ids == "") {
       delete data.filter.mileage_ids
@@ -68,7 +68,7 @@ exports.addExpense = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('err',error)
+    console.log('err', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -257,7 +257,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
