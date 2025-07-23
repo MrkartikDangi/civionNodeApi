@@ -21,6 +21,7 @@ const {
   DeleteObjectCommand,
   PutObjectCommand,
 } = require("@aws-sdk/client-s3");
+const mileage = require("../../models/mileageModel");
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -230,7 +231,7 @@ Generic.sendPdfBuffer = ({ res, filePath, fileName = "Daily_Report.pdf" }) => {
       .send({ status: "failed", message: "Error sending the PDF file." });
   });
 };
-Generic.sendApprovalEmail = async (to, subject, html,cc,bcc) => {
+Generic.sendApprovalEmail = async (to, subject, html, cc, bcc) => {
   return new Promise((resolve, reject) => {
     let transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST_2,
@@ -578,7 +579,6 @@ Generic.mergePdf = async (postData) => {
 }
 Generic.sendExpenseMileageMail = async (postData) => {
   try {
-    const getUpdatedExpense = await expense.getExpenseData({ filter: { expense_id: postData.expense_id } })
     const emailTemplatePath = path.join(
       __dirname,
       "../../view/payrollEmailTemplate.html",
@@ -586,21 +586,57 @@ Generic.sendExpenseMileageMail = async (postData) => {
     const emailTemplateSource = fs.readFileSync(emailTemplatePath, "utf8");
     const emailTemplate = handlebars.compile(emailTemplateSource);
     let type = postData.type.charAt(0).toUpperCase() + postData.type.slice(1);
-    const getUpdatedExpenseType = await expense.getExpenseType({ expense_id: postData.expense_id })
+    let emailData = {
+      type: type
+    }
     let getExpenseTypeImages
-    if (getUpdatedExpenseType.length) {
-      getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: getUpdatedExpenseType[0]?.id })
+    let getExpenseType
+    let getMileageDetails
+    let getExpenseDetails
+    let images = []
+    if (postData.type == 'expense' && postData.item_id !== "") {
+      getExpenseType = await expense.getExpenseType({ filter: { id: postData.item_id } })
+      if (getExpenseType.length) {
+        emailData.employeeName = getExpenseType[0]?.username
+        emailData.totalApprovedAmount = getExpenseType[0]?.amount.toFixed(2)
+        getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: postData.item_id })
+        emailData.images = getExpenseTypeImages.length ? getExpenseTypeImages : []
+      }
+    }
+    if (postData.type == 'expense' && postData.item_id == "") {
+      getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: postData.expense_id } })
+      emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
+      emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.expenseAmount.toFixed(2) : 0
+      emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
+      emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
+      getExpenseType = await expense.getExpenseType({ expense_id: postData.expense_id })
+      if (getExpenseType.length) {
+        for (let row of getExpenseType) {
+          getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: row.id })
+          images = getExpenseTypeImages.map(item => ({
+            path: item.file_url
+          }))
+
+        }
+      }
+      emailData.images = images
+
+    }
+    if (postData.type == 'mileage' && postData.mileage_id !== "") {
+      getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: postData.mileage_id } })
+      emailData.employeeName = getMileageDetails.length ? getMileageDetails[0]?.username : ''
+      emailData.totalApprovedAmount = getMileageDetails.length ? getMileageDetails[0]?.amount.toFixed(2) : 0
+      emailData.images = images
 
     }
 
-    const emailData = {
-      type: type,
-      employeeName: getUpdatedExpense[0]?.username,
-      totalApprovedAmount: postData.type == 'expense' ? getUpdatedExpense[0]?.expenseAmount.toFixed(2) : getUpdatedExpense[0]?.mileageAmount.toFixed(2),
-      startDate: getUpdatedExpense[0]?.startDate.toLocaleDateString("en-US"),
-      endDate: getUpdatedExpense[0]?.endDate.toLocaleDateString("en-US"),
-      images: postData.type == 'expense' && getExpenseTypeImages.length > 0 ? getExpenseTypeImages : [],
-    };
+    if (postData.type == 'mileage' && postData.mileage_id == "") {
+      getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: postData.expense_id } })
+      emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
+      emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.mileageAmount.toFixed(2) : 0
+      emailData.images = images
+    }
+    console.log('emailData', emailData)
 
     const emailHTML = emailTemplate(emailData);
 
@@ -625,6 +661,7 @@ Generic.sendExpenseMileageMail = async (postData) => {
     }
 
   } catch (error) {
+    console.log('error', error)
     throw new Error('Failed to send expense mileage mail', error);
 
   }

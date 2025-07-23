@@ -28,6 +28,11 @@ expense.getExpenseData = (postData) => {
       if (err) {
         reject(err)
       } else {
+        if (res.length) {
+          for (let row of res) {
+            row.mileageIds = row.mileageIdsArray !== null ? row.mileageIds.split(',') : []
+          }
+        }
         resolve(res)
       }
 
@@ -37,8 +42,16 @@ expense.getExpenseData = (postData) => {
 }
 expense.getExpenseType = (postData) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
-    let queryValues = [postData.expense_id]
+    let query = ``
+    let queryValues
+    if (postData.filter && postData.filter.id) {
+      query = `SELECT ket.title,ket.amount,ket.category,ket.status,ket.created_by,ku.username FROM kps_expense_type AS ket LEFT JOIN kps_users AS ku ON ku.id = ket.created_by WHERE ket.id = ? `
+      queryValues = [postData.filter.id]
+    } else {
+      query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
+      queryValues = [postData.expense_id]
+    }
+
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
@@ -80,10 +93,9 @@ expense.addExpense = (postData) => {
       task: postData.task || null,
       receipt: postData.pdfBaseName || null,
       folder_name: postData.folder_name || null,
-      mileageAmount: postData.mileageAmount || null,
+      mileageAmount: postData.mileageExpense || null,
       expenseAmount: postData.expenseAmount || null,
-      mileageStatus: postData.mileageStatus || 'Pending',
-      expenseStatus: postData.expenseStatus || 'Pending',
+      mileageIds: postData.mileage_ids || '',
       createdAt: postData.user.dateTime,
       created_by: postData.user.userId
     }
@@ -168,8 +180,8 @@ expense.updateExpenseItemStatus = (postData) => {
     let query
     let values
     if (postData.item_id !== "") {
-      query = `UPDATE ?? SET ? WHERE id = ? AND expense_id = ?`
-      values = ['kps_expense_type', updatedValues, postData.item_id, postData.expense_id]
+      query = `UPDATE ?? SET ? WHERE id = ? AND expense_id = ? AND status = ?`
+      values = ['kps_expense_type', updatedValues, postData.item_id, postData.expense_id, "Pending"]
     } else {
       query = `UPDATE ?? SET ? WHERE expense_id = ? AND status = ?`
       values = ['kps_expense_type', updatedValues, postData.expense_id, "Pending"]

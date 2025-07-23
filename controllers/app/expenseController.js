@@ -10,18 +10,22 @@ const { validationResult, matchedData } = require("express-validator");
 exports.addExpense = async (req, res) => {
   try {
     db.beginTransaction()
-    const mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate, append_to_expense: 0 } });
+    let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
+    let data = {
+      filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate, append_to_expense: 0, mileage_ids: mileage_ids }
+    }
+    if (mileage_ids == "") {
+      delete data.filter.mileage_ids
+    }
+    const mileageUser = await mileage.getUserMileage(data);
     if (!mileageUser) {
       req.body.mileageExpense = 0
     } else {
       req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
     }
-    req.body.expenseAmount = req.body.expenseType.reduce(
-      (sum, e) => sum + (Number(e.amount) || 0),
-      0,
-    );
     req.body.pdfBaseName = path.basename(req.body.receipt);
     req.body.folder_name = path.dirname(req.body.receipt);
+    req.body.mileage_ids = mileage_ids
     const addExpense = await expense.addExpense(req.body)
     if (addExpense.insertId) {
       const expenseId = addExpense.insertId
@@ -45,7 +49,7 @@ exports.addExpense = async (req, res) => {
       }
       if (mileageUser.length) {
         for (let row of mileageUser) {
-          await mileage.updateMileageAppendStatus({ id: row.id, dateTime: req.body.user.dateTime })
+          await mileage.updateMileageAppendStatus({ id: row.id, dateTime: req.body.user.dateTime, expense_id: addExpense.insertId })
         }
       }
       db.commit()
@@ -64,7 +68,6 @@ exports.addExpense = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('errror', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -81,6 +84,7 @@ exports.getExpense = async (req, res) => {
     if (getExpenseData && getExpenseData.length) {
       for (let row of getExpenseData) {
         row.expenseType = await expense.getExpenseType({ expense_id: row.id })
+        row.mileage = await mileage.getUserMileage({ filter: { mileage_ids: row.mileageIds } })
         if (row.expenseType.length) {
           for (let element of row.expenseType) {
             element.images = await expense.getExpenseTypeImage({ expense_type_id: element.id })
@@ -212,67 +216,47 @@ exports.updateExpenseItemStatus = async (req, res) => {
   }
   try {
     db.beginTransaction()
+    const data = {
+      expense_id: req.body.expense_id,
+      userId: req.body.user.userId,
+      dateTime: req.body.user.dateTime,
+      key: req.body.type == 'expense' ? 'expenseStatus' : 'mileageStatus',
+      status: req.body.status || 'Approved'
+    };
     if (req.body.type == 'expense') {
       const updateExpenseItemStatus = await expense.updateExpenseItemStatus(req.body)
       if (updateExpenseItemStatus.affectedRows) {
-        const data = {
-          expense_id: req.body.expense_id,
-          userId: req.body.user.userId,
-          dateTime: req.body.user.dateTime,
-          key: 'expenseStatus',
-          status: req.body.status || 'Approved'
-        };
         await expense.updateExpenseMileageStatus(data)
+      }
+    } else {
+      let updateMileageStatus = await mileage.updateMileageStatus(req.body)
+      if (updateMileageStatus.affectedRows) {
+        await expense.updateExpenseMileageStatus(data)
+      }
+    }
+    if (data.status == 'Approved') {
+      let result = await generic.sendExpenseMileageMail({ expense_id: req.body.expense_id, type: req.body.type, item_id: req.body.item_id, mileage_id: req.body.mileage_id })
+      if (result) {
         db.commit()
         return generic.success(req, res, {
-          message: req.body.item_id !== "" ? "Item status updated successfully" : "Expense status updated successfully",
+          message: result.message,
         });
+
       } else {
         db.rollback()
         return generic.error(req, res, {
-          message: "Failed to update item status",
+          message: result.message,
         });
       }
     } else {
-      const data = {
-        expense_id: req.body.expense_id,
-        userId: req.body.user.userId,
-        dateTime: req.body.user.dateTime,
-        key: 'mileageStatus',
-        status: req.body.status || 'Approved'
-      };
-      let result = await expense.updateExpenseMileageStatus(data)
-      if (result.affectedRows) {
-        if (data.status == 'Approved') {
-          let result = await generic.sendExpenseMileageMail({ expense_id: req.body.expense_id, type: req.body.type })
-          if (result) {
-            db.commit()
-            return generic.success(req, res, {
-              message: result.message,
-            });
-
-          } else {
-            db.rollback()
-            return generic.success(req, res, {
-              message: result.message,
-            });
-          }
-        } else {
-          db.commit()
-          return generic.success(req, res, {
-            message: "Mileage status updated successfully",
-          });
-        }
-      } else {
-        db.rollback()
-        return generic.error(req, res, {
-          message: "Failed to update mileage status",
-        });
-      }
-
+      db.commit()
+      return generic.success(req, res, {
+        message: `${type} updated successfully`,
+      });
     }
 
   } catch (error) {
+    console.log('error',error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
