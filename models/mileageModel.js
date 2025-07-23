@@ -42,7 +42,7 @@ mileage.addUserMileage = (postData) => {
             user_id: postData.user.userId,
             startLocation: postData.startLocation,
             endLocation: postData.endLocation,
-            date: moment.utc(postData.date).format('YYYY-MM-DD HH:mm:ss'),
+            date: postData.date,
             totalDistance: postData.distance.toFixed(2),
             duration: postData.duration,
             amount: postData.amount.toFixed(2),
