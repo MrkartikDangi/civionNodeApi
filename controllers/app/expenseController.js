@@ -23,8 +23,8 @@ exports.addExpense = async (req, res) => {
     } else {
       req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
     }
-    req.body.pdfBaseName = path.basename(req.body.receipt);
-    req.body.folder_name = path.dirname(req.body.receipt);
+    // req.body.pdfBaseName = path.basename(req.body.receipt);
+    // req.body.folder_name = path.dirname(req.body.receipt);
     req.body.mileage_ids = mileage_ids
     const addExpense = await expense.addExpense(req.body)
     if (addExpense.insertId) {
@@ -68,6 +68,7 @@ exports.addExpense = async (req, res) => {
     }
 
   } catch (error) {
+    console.log('err',error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
