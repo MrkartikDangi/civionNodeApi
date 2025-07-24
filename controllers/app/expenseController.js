@@ -12,7 +12,7 @@ exports.addExpense = async (req, res) => {
     db.beginTransaction()
     let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
     let data = {
-      filter: { userId: req.body.user.userId, startDate: req.body.startDate, endDate: req.body.endDate, mileage_ids: mileage_ids, type: 'expense' }
+      filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' }
     }
     if (mileage_ids == "") {
       delete data.filter.mileage_ids
