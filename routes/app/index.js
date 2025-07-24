@@ -112,7 +112,7 @@ router.post(
     [
       check("email", "email is required").notEmpty(),
       check("mileageRate", "mileageRate is required").notEmpty(),
-      check("allowanceDistance", "allowanceDistance is required").notEmpty(),
+      check("allowanceDistance", "allowanceDistance is required"),
       check("isBoss", "isBoss is required").notEmpty(),
     ],
   ]),

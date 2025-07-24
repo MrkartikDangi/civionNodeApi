@@ -34,7 +34,7 @@ User.addUserDetails = (postData) => {
     let insertedValues = {
       email: postData.email,
       mileage_rate: postData.mileageRate,
-      allowanceDistance: postData.allowanceDistance,
+      allowanceDistance: postData.allowanceDistance || 0,
       is_boss: postData.isBoss || false,
       created_at: postData.user.dateTime,
       created_by: postData.user.userId
