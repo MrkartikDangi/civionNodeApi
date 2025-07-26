@@ -16,8 +16,11 @@ mileage.getUserMileage = (postData) => {
         if (postData.filter && postData.filter.mileage_ids) {
             whereCondition += ` AND km.id IN (${postData.filter.mileage_ids})`
         }
-        if(postData.filter && postData.filter.type == 'expense'){
+        if (postData.filter && postData.filter.type == 'expense') {
             whereCondition += ` AND km.append_to_expense = '0'`
+        }
+        if (postData.filter && postData.filter.status) {
+            whereCondition += ` AND km.status = '${postData.filter.status}'`
         }
         let query = `SELECT km.*, IFNULL(DATE_FORMAT(km.date, '%Y-%m-%d %H:%i:%s'), '') AS date, IFNULL(DATE_FORMAT(km.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at, IFNULL((SELECT JSON_ARRAYAGG(JSON_OBJECT('latitude', coord.latitude, 'longitude', coord.longitude)) FROM kps_mileage_coordinates AS coord WHERE coord.mileage_id = km.id), JSON_ARRAY()) AS coordinates , ku.username FROM kps_mileage AS km LEFT JOIN kps_users ku ON ku.id = km.user_id WHERE 1 = 1 ${whereCondition};`
         let values = []
@@ -105,14 +108,14 @@ mileage.updateMileageStatus = (postData) => {
     return new Promise((resolve, reject) => {
         let updatedValues = {
             status: postData.status || "Pending",
-            updated_at: postData.user.dateTime,
-            updated_by: postData.user.userId
+            updated_at: postData.dateTime,
+            updated_by: postData.userId
         }
         let query
         let values
-        if (postData.mileage_id !== "") {
+        if (postData.id !== "") {
             query = `UPDATE ?? SET ? WHERE  append_to_expense = ? AND status = ? AND id = ?`
-            values = ['kps_mileage', updatedValues, postData.expense_id, "Pending", postData.mileage_id]
+            values = ['kps_mileage', updatedValues, postData.expense_id, "Pending", postData.id]
         } else {
             query = `UPDATE ?? SET ? WHERE append_to_expense = ? AND status = ?`
             values = ['kps_mileage', updatedValues, postData.expense_id, "Pending"]

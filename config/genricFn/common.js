@@ -501,10 +501,21 @@ Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '', subFo
     const client = Client.init({
       authProvider: (done) => done(null, getAccessToken[0]?.access_token)
     });
+    const drives = await client.api('/drives').get();
+    console.log('drives', drives);
+    const res = await axios.get('https://graph.microsoft.com/v1.0/users', {
+      headers: {
+        Authorization: `Bearer ${getAccessToken[0]?.access_token}`,
+      },
+    });
+
+    // console.log(res.data.value.map(user => user.userPrincipalName));
+    return
 
     const fileContent = await axios.get(filePath, { responseType: 'arraybuffer' });
     const mimeType = Generic.getMimeType(fileName);
     const uploadPath = folderPath ? `/${folderPath}/${subFolder}/${fileName}` : `/${fileName}`;
+    console.log('onedrive', onedriveConfig)
 
     const response = await client
       .api(`/users/${onedriveConfig.driveEmail}/drive/root:/${uploadPath}:/content`)
@@ -595,51 +606,53 @@ Generic.sendExpenseMileageMail = async (postData) => {
     let getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: postData.expense_id } })
     let images = []
     if (postData.type == 'expense' && postData.item_id !== "") {
-      getExpenseType = await expense.getExpenseType({ filter: { id: postData.item_id } })
+      getExpenseType = await expense.getExpenseType({ filter: { id: postData.item_id, status: 'Approved' } })
       if (getExpenseType.length) {
         emailData.employeeName = getExpenseType[0]?.username
-        emailData.totalApprovedAmount = getExpenseType[0]?.amount.toFixed(2)
+        emailData.totalApprovedAmount = getExpenseType.reduce((sum, expense) => sum + expense.amount, 0).toFixed(2)
         getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: postData.item_id })
         emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
         emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
         emailData.images = getExpenseTypeImages.length ? getExpenseTypeImages : []
       }
     }
-    if (postData.type == 'expense' && postData.item_id == "") {
-      emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
-      emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.expenseAmount.toFixed(2) : 0
-      emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
-      emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
-      getExpenseType = await expense.getExpenseType({ expense_id: postData.expense_id })
-      if (getExpenseType.length) {
-        for (let row of getExpenseType) {
-          getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: row.id })
-          images = getExpenseTypeImages.map(item => ({
-            path: item.file_url
-          }))
+    // if (postData.type == 'expense' && postData.item_id == "") {
+    //   emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
+    //   emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.expenseAmount.toFixed(2) : 0
+    //   emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
+    //   emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
+    //   getExpenseType = await expense.getExpenseType({ expense_id: postData.expense_id })
+    //   if (getExpenseType.length) {
+    //     for (let row of getExpenseType) {
+    //       getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: row.id })
+    //       images = getExpenseTypeImages.map(item => ({
+    //         path: item.file_url
+    //       }))
 
-        }
-      }
-      emailData.images = images
+    //     }
+    //   }
+    //   emailData.images = images
 
-    }
+    // }
     if (postData.type == 'mileage' && postData.mileage_id !== "") {
-      getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: postData.mileage_id } })
-      emailData.employeeName = getMileageDetails.length ? getMileageDetails[0]?.username : ''
-      emailData.totalApprovedAmount = getMileageDetails.length ? getMileageDetails[0]?.amount.toFixed(2) : 0
-      emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
-      emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
-      emailData.images = images
+      getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: postData.mileage_id, status: 'Approved' } })
+      if (getMileageDetails.length) {
+        emailData.employeeName = getMileageDetails[0]?.username || ''
+        emailData.totalApprovedAmount = getMileageDetails.reduce((sum, trip) => sum + trip.amount, 0).toFixed(2) || 0
+        emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
+        emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
+        emailData.images = images
+      }
 
     }
 
-    if (postData.type == 'mileage' && postData.mileage_id == "") {
-      emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
-      emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.mileageAmount.toFixed(2) : 0
-      emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
-      emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
-      emailData.images = images
-    }
+    // if (postData.type == 'mileage' && postData.mileage_id == "") {
+    //   emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
+    //   emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.mileageAmount.toFixed(2) : 0
+    //   emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
+    //   emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
+    //   emailData.images = images
+    // }
 
     const emailHTML = emailTemplate(emailData);
 

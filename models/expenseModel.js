@@ -44,9 +44,9 @@ expense.getExpenseType = (postData) => {
   return new Promise((resolve, reject) => {
     let query = ``
     let queryValues
-    if (postData.filter && postData.filter.id) {
-      query = `SELECT ket.title,ket.amount,ket.category,ket.status,ket.created_by,ku.username FROM kps_expense_type AS ket LEFT JOIN kps_users AS ku ON ku.id = ket.created_by WHERE ket.id = ? `
-      queryValues = [postData.filter.id]
+    if (postData.filter) {
+      query = `SELECT ket.title,ket.amount,ket.category,ket.status,ket.created_by,ku.username FROM kps_expense_type AS ket LEFT JOIN kps_users AS ku ON ku.id = ket.created_by WHERE ket.id IN (?) AND ket.status = ? `
+      queryValues = [postData.filter.id,postData.filter.status]
     } else {
       query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
       queryValues = [postData.expense_id]
@@ -179,9 +179,9 @@ expense.updateExpenseItemStatus = (postData) => {
     }
     let query
     let values
-    if (postData.item_id !== "") {
+    if (postData.id !== "") {
       query = `UPDATE ?? SET ? WHERE id = ? AND expense_id = ? AND status = ?`
-      values = ['kps_expense_type', updatedValues, postData.item_id, postData.expense_id, "Pending"]
+      values = ['kps_expense_type', updatedValues, postData.id, postData.expense_id, "Pending"]
     } else {
       query = `UPDATE ?? SET ? WHERE expense_id = ? AND status = ?`
       values = ['kps_expense_type', updatedValues, postData.expense_id, "Pending"]

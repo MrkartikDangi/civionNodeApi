@@ -224,19 +224,33 @@ exports.updateExpenseItemStatus = async (req, res) => {
       key: req.body.type == 'expense' ? 'expenseStatus' : 'mileageStatus',
       status: req.body.status || 'Approved'
     };
+    let itemIds = []
+    let mileageIds = []
     if (req.body.type == 'expense') {
-      const updateExpenseItemStatus = await expense.updateExpenseItemStatus(req.body)
-      if (updateExpenseItemStatus.affectedRows) {
+      if (req.body.items && req.body.items.length) {
+        for (let row of req.body.items) {
+          itemIds.push(row.id)
+          row.expense_id = req.body.expense_id
+          row.dateTime = req.body.user.dateTime
+          row.userId = req.body.user.userId
+          await expense.updateExpenseItemStatus(row)
+        }
         await expense.updateExpenseMileageStatus(data)
       }
     } else {
-      let updateMileageStatus = await mileage.updateMileageStatus(req.body)
-      if (updateMileageStatus.affectedRows) {
+      if (req.body.mileage && req.body.mileage.length) {
+        for (let row of req.body.mileage) {
+          mileageIds.push(row.id)
+          row.expense_id = req.body.expense_id
+          row.dateTime = req.body.user.dateTime
+          row.userId = req.body.user.userId
+          await mileage.updateMileageStatus(row)
+        }
         await expense.updateExpenseMileageStatus(data)
       }
     }
     if (data.status == 'Approved') {
-      let result = await generic.sendExpenseMileageMail({ expense_id: req.body.expense_id, type: req.body.type, item_id: req.body.item_id, mileage_id: req.body.mileage_id })
+      let result = await generic.sendExpenseMileageMail({ expense_id: req.body.expense_id, type: req.body.type, item_id: itemIds.length ? itemIds.join(',') : "", mileage_id: mileageIds.length ? mileageIds.join(',') : "" })
       if (result) {
         db.commit()
         return generic.success(req, res, {
