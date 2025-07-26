@@ -415,7 +415,7 @@ router.post(
 );
 router.post(
   "/expense/updateExpenseItemStatus",
-   oneOf([
+  oneOf([
     [
       check("expense_id", "expense_id is required").notEmpty(),
       check("status", "status is required").notEmpty(),
@@ -517,6 +517,16 @@ router.post(
   "/notification/getNotifications",
   authenticateJWT,
   notificationController.getNotifications,
+);
+router.post(
+  "/notification/updateNotificationStatus",
+  oneOf([
+    [
+      check("id").isArray({ min: 1 }).withMessage('id must be a non-empty array').notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  notificationController.updateNotificationStatus,
 );
 router.post(
   "/drawing/mergePdf",

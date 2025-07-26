@@ -11,8 +11,8 @@ notification.getNotificationsList = (postData) => {
         console.log('1')
       whereCondition += ` AND userid = ${postData.user.userId}`
     }
-    let query = `SELECT subject,message,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at FROM kps_notifications WHERE 1 = 1 ${whereCondition} ORDER BY id DESC`
-    let values = []
+    let query = `SELECT id,subject,message,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at FROM kps_notifications WHERE is_read = ? ${whereCondition} ORDER BY id DESC`
+    let values = ['0']
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)
@@ -33,6 +33,23 @@ notification.addNotificationData = (postData) => {
       created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
     }
     let query = `INSERT INTO ?? SET ?`
+    let values = ['kps_notifications', insertedValues]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+notification.updateNotificationStatus = (postData) => {
+  return new Promise((resolve, reject) => {
+    let insertedValues = {
+      is_read: 1 ,
+      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    }
+    let query = `UPDATE ?? SET ? WHERE id IN (${postData.id})`
     let values = ['kps_notifications', insertedValues]
     db.query(query, values, (err, res) => {
       if (err) {
