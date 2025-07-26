@@ -6,8 +6,8 @@ const weeklyEntry = () => { }
 weeklyEntry.getWeeklyEntry = (postData) => {
   return new Promise((resolve, reject) => {
     let whereCondition = ``
-    if (postData.filter && postData.filter.projectId) {
-      whereCondition += ` AND projectId = ${postData.filter.projectId}`
+    if (postData.filter && postData.filter.schedule_id) {
+      whereCondition += ` AND schedule_id = ${postData.filter.schedule_id}`
     }
     if (postData.filter && postData.filter.startDate) {
       whereCondition += ` AND weekStartDate = '${postData.filter.startDate}'`
@@ -30,7 +30,7 @@ weeklyEntry.getWeeklyEntry = (postData) => {
 }
 weeklyEntry.getWeeklyDailyEntry = (postData) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT kps_user_weekly_daily_entry.*,kps_daily_entry.userId,kps_daily_entry.projectId,kps_daily_entry.owner_project_manager,kps_daily_entry.owner_contact,kps_daily_entry.selected_date,kps_daily_entry.location,kps_daily_entry.on_shore,kps_daily_entry.temp_high,kps_daily_entry.temp_low,kps_daily_entry.weather,kps_daily_entry.working_day,kps_daily_entry.report_number,kps_daily_entry.contract_number,kps_daily_entry.contractor,kps_daily_entry.site_inspector,kps_daily_entry.time_in,kps_daily_entry.time_out,kps_daily_entry.component,kps_daily_entry.description FROM kps_user_weekly_daily_entry LEFT JOIN kps_daily_entry ON kps_daily_entry.id = kps_user_weekly_daily_entry.dailyEntryId WHERE kps_user_weekly_daily_entry.weeklyEntryId = ? `
+    let query = `SELECT kps_user_weekly_daily_entry.*,kps_daily_entry.userId,kps_daily_entry.schedule_id,kps_daily_entry.owner_project_manager,kps_daily_entry.owner_contact,kps_daily_entry.selected_date,kps_daily_entry.location,kps_daily_entry.on_shore,kps_daily_entry.temp_high,kps_daily_entry.temp_low,kps_daily_entry.weather,kps_daily_entry.working_day,kps_daily_entry.report_number,kps_daily_entry.contract_number,kps_daily_entry.contractor,kps_daily_entry.site_inspector,kps_daily_entry.time_in,kps_daily_entry.time_out,kps_daily_entry.component,kps_daily_entry.description FROM kps_user_weekly_daily_entry LEFT JOIN kps_daily_entry ON kps_daily_entry.id = kps_user_weekly_daily_entry.dailyEntryId WHERE kps_user_weekly_daily_entry.weeklyEntryId = ? `
     let queryValues = [postData.weeklyEntryId]
     db.query(query, queryValues, (err, res) => {
       if (err) {
@@ -60,17 +60,12 @@ weeklyEntry.getWeeklyDailyDiary = (postData) => {
 }
 weeklyEntry.getWeeklyEntryImages = (postData) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT id,path,folder_name FROM kps_weekly_entry_images WHERE weeklyEntryId = ?`
+    let query = `SELECT id,path,folder_name,IFNULL(CONCAT('${process.env.Base_Url}',folder_name,'/', path), '') as path FROM kps_weekly_entry_images WHERE weeklyEntryId = ?`
     let queryValues = [postData.weeklyEntryId]
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
-        if(res.length){
-          for(let row of res){
-            row.path = `${process.env.Base_Url}/${row.folder_name}/${row.path}`
-          }
-        }
         resolve(res)
       }
 
@@ -82,7 +77,7 @@ weeklyEntry.createWeeklyEntry = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
       userId: postData.user.userId,
-      projectId: postData.projectId,
+      schedule_id: postData.schedule_id,
       weekStartDate: postData.startDate,
       weekEndDate: postData.endDate,
       contractNumber: postData.contractNumber || null,

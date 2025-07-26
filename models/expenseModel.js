@@ -22,7 +22,7 @@ expense.getExpenseData = (postData) => {
     if (postData.filter && postData.filter.mileageStatus) {
       whereCondition += ` AND kps_expense.mileageStatus = '${postData.filter.mileageStatus}'`
     }
-    let query = `SELECT  kps_expense.*, IFNULL(DATE_FORMAT(kps_expense.createdAt, '%Y-%m-%d %H:%i:%s'), '') AS createdAt,IFNULL(DATE_FORMAT(kps_expense.updatedAt, '%Y-%m-%d %H:%i:%s'), '') AS updatedAt,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense.folder_name,'/', kps_expense.receipt), '') as receipt,kps_users.username,kps_users.email , kps_schedules.project_name FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId LEFT JOIN kps_schedules ON kps_schedules.id = kps_expense.schedule_id WHERE 1 = 1 ${whereCondition} ORDER BY kps_expense.id DESC`
+    let query = `SELECT  kps_expense.*, IFNULL(DATE_FORMAT(kps_expense.createdAt, '%Y-%m-%d %H:%i:%s'), '') AS createdAt,IFNULL(DATE_FORMAT(kps_expense.updatedAt, '%Y-%m-%d %H:%i:%s'), '') AS updatedAt,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense.folder_name,'/', kps_expense.receipt), '') as receipt,kps_users.username,kps_users.email , kps_schedules.project_name,kps_schedules.project_number FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId LEFT JOIN kps_schedules ON kps_schedules.id = kps_expense.schedule_id WHERE 1 = 1 ${whereCondition} ORDER BY kps_expense.id DESC`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
@@ -30,7 +30,7 @@ expense.getExpenseData = (postData) => {
       } else {
         if (res.length) {
           for (let row of res) {
-            row.mileageIds = row.mileageIdsArray !== null ? row.mileageIds.split(',') : []
+            row.mileageIds = row.mileageIds !== "" ? row.mileageIds.split(',') : ""
           }
         }
         resolve(res)

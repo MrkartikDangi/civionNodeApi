@@ -93,7 +93,11 @@ exports.getExpense = async (req, res) => {
     if (getExpenseData && getExpenseData.length) {
       for (let row of getExpenseData) {
         row.expenseType = await expense.getExpenseType({ expense_id: row.id })
-        row.mileage = await mileage.getUserMileage({ filter: { mileage_ids: row.mileageIds } })
+        if (row.mileageIds !== '') {
+          row.mileage = await mileage.getUserMileage({ filter: { mileage_ids: row.mileageIds } })
+        } else {
+          row.mileage = []
+        }
         if (row.expenseType.length) {
           for (let element of row.expenseType) {
             element.images = await expense.getExpenseTypeImage({ expense_type_id: element.id })
@@ -249,7 +253,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
           userid: getExpenseDetails[0]?.userId,
           subject: 'Expense',
           message: `${req.body.user.username} your expense has been ${data.status}! Dates Covered ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} - ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}`,
-          created_by:  req.body.user.userId
+          created_by: req.body.user.userId
         }
         await notification.addNotificationData(notificationData)
       }
