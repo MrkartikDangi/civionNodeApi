@@ -1,11 +1,9 @@
 const Notification = require("../../models/Notification");
 const generic = require("../../config/genricFn/common");
-const moment = require("moment");
 
 exports.getNotifications = async (req, res) => {
   try {
-    let currentDate = moment(new Date()).format("YYYY-MM-DD");
-    const data = await Notification.find({ date: currentDate });
+    const data = await Notification.getNotificationsList(req.body);
     return generic.success(req, res, {
       message: "Notification data retrieved successfully.",
       data: data,

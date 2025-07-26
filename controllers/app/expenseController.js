@@ -6,6 +6,8 @@ const expense = require("../../models/expenseModel");
 const generic = require("../../config/genricFn/common");
 const db = require("../../config/db")
 const { validationResult, matchedData } = require("express-validator");
+const notification = require("../../models/Notification")
+const moment = require("moment")
 
 exports.addExpense = async (req, res) => {
   try {
@@ -52,6 +54,12 @@ exports.addExpense = async (req, res) => {
           await mileage.updateMileageAppendStatus({ id: row.id, dateTime: req.body.user.dateTime, expense_id: addExpense.insertId })
         }
       }
+      let notificationData = {
+        subject: 'Expense',
+        message: `${req.body.user.username} has added their expense! Dates Covered ${moment(req.body.endDate).format('DD-MMM-YYYY')} - ${moment(req.body.endDate).format('DD-MMM-YYYY')}`,
+        created_by: req.body.user.userId
+      }
+      await notification.addNotificationData(notificationData)
       db.commit()
       return generic.success(req, res, {
         message: "Expense successfully created",
@@ -236,6 +244,14 @@ exports.updateExpenseItemStatus = async (req, res) => {
           await expense.updateExpenseItemStatus(row)
         }
         await expense.updateExpenseMileageStatus(data)
+        let getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: req.body.expense_id } })
+        let notificationData = {
+          userid: getExpenseDetails[0]?.userId,
+          subject: 'Expense',
+          message: `${req.body.user.username} your expense has been ${data.status}! Dates Covered ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} - ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}`,
+          created_by:  req.body.user.userId
+        }
+        await notification.addNotificationData(notificationData)
       }
     } else {
       if (req.body.mileage && req.body.mileage.length) {
@@ -271,7 +287,6 @@ exports.updateExpenseItemStatus = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,

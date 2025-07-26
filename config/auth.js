@@ -26,6 +26,7 @@ module.exports = {
           req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
           req.body.user.latitude = getUserDetails[0]?.latitude
           req.body.user.longitude = getUserDetails[0]?.longitude
+          req.body.user.username = getUserDetails[0]?.username
           req.body.user.dateTime = req.header("dateTime") ? req.header("dateTime") : moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
         }
         next();

@@ -152,7 +152,6 @@ User.updateBossPermission = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users',updatedValues, postData.user.userId]
-    console.log('values',values)
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)

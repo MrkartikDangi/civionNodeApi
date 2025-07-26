@@ -513,7 +513,7 @@ router.post(
   mileageController.getUserMileage
 );
 
-router.get(
+router.post(
   "/notification/getNotifications",
   authenticateJWT,
   notificationController.getNotifications,

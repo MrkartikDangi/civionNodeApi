@@ -1,23 +1,47 @@
-// const mongoose = require("mongoose");
+const db = require("../config/db")
+const moment = require("moment")
 
-// // Define the schema for Photo Files
-// const NotificationSchema = new mongoose.Schema(
-//   {
-//     userId: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "UserDetails",
-//       required: true,
-//     },
-//     scheduleId: { type: mongoose.Schema.Types.ObjectId, ref: "Schedule" },
-//     date: { type: String, required: true },
-//     message: { type: String },
-//   },
-//   {
-//     timestamps: true,
-//   },
-// );
+const notification = () => {}
 
-// // Define the model based on the schema
-// const Notification = mongoose.model("Notification", NotificationSchema);
 
-// module.exports = Notification;
+notification.getNotificationsList = (postData) => {
+  return new Promise((resolve, reject) => {
+    let whereCondition = ``
+    if (!postData.user.isBoss) {
+        console.log('1')
+      whereCondition += ` AND userid = ${postData.user.userId}`
+    }
+    let query = `SELECT subject,message,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at FROM kps_notifications WHERE 1 = 1 ${whereCondition} ORDER BY id DESC`
+    let values = []
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+
+notification.addNotificationData = (postData) => {
+  return new Promise((resolve, reject) => {
+    let insertedValues = {
+      userid: postData.userid ,
+      subject: postData.subject ,
+      message: postData.message,
+      created_by: postData.created_by,
+      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    }
+    let query = `INSERT INTO ?? SET ?`
+    let values = ['kps_notifications', insertedValues]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+
+module.exports = notification
