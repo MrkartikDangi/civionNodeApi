@@ -11,8 +11,8 @@ notification.getNotificationsList = (postData) => {
         console.log('1')
       whereCondition += ` AND userid = ${postData.user.userId}`
     }
-    let query = `SELECT id,subject,message,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at FROM kps_notifications WHERE is_read = ? ${whereCondition} ORDER BY id DESC`
-    let values = ['0']
+    let query = `SELECT id,subject,message,is_read,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at FROM kps_notifications WHERE 1 = 1 ${whereCondition} ORDER BY id DESC`
+    let values = []
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)
