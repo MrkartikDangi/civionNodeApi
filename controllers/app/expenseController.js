@@ -56,7 +56,7 @@ exports.addExpense = async (req, res) => {
       }
       let notificationData = {
         subject: 'Expense',
-        message: `${req.body.user.username} has added their expense! Dates Covered ${moment(req.body.endDate).format('DD-MMM-YYYY')} - ${moment(req.body.endDate).format('DD-MMM-YYYY')}`,
+        message: `${req.body.user.username} has submitted an expense report for the period ${moment(req.body.startDate).format('DD-MMM-YYYY')} to ${moment(req.body.endDate).format('DD-MMM-YYYY')} with a total amount of ₹${req.body.expenseAmount}.`,
         created_by: req.body.user.userId
       }
       await notification.addNotificationData(notificationData)
@@ -252,7 +252,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
         let notificationData = {
           userid: getExpenseDetails[0]?.userId,
           subject: 'Expense',
-          message: `${req.body.user.username} your expense has been ${data.status}! Dates Covered ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} - ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}`,
+          message: `${req.body.user.username}, your expense report has been ${data.status}. Period: ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} to ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}.`,
           created_by: req.body.user.userId
         }
         await notification.addNotificationData(notificationData)
