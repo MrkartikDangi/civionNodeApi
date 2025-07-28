@@ -268,6 +268,15 @@ exports.updateExpenseItemStatus = async (req, res) => {
           await mileage.updateMileageStatus(row)
         }
         await expense.updateExpenseMileageStatus(data)
+        let getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: mileageIds.join(',') } })
+        let mileagerangeDates = getMileageDetails.map((x) => moment(x.date).format('DD-MMM-YYYY')).join(',')
+        let notificationData = {
+          userid: getMileageDetails[0]?.userId,
+          subject: 'Mileage',
+          message: `${req.body.user.username}, your mileage report has been ${data.status}.Dates covered: ${mileagerangeDates}`,
+          created_by: req.body.user.userId
+        }
+        await notification.addNotificationData(notificationData)
       }
     }
     if (data.status == 'Approved') {
