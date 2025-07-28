@@ -271,7 +271,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
         let getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: mileageIds.join(',') } })
         let mileagerangeDates = getMileageDetails.map((x) => moment(x.date).format('DD-MMM-YYYY')).join(',')
         let notificationData = {
-          userid: getMileageDetails[0]?.userId,
+          userid: getMileageDetails[0]?.user_id,
           subject: 'Mileage',
           message: `Your mileage report has been ${data.status}.Dates covered: ${mileagerangeDates}`,
           created_by: req.body.user.userId
