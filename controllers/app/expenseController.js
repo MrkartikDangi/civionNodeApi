@@ -86,6 +86,7 @@ exports.addExpense = async (req, res) => {
 };
 exports.getExpense = async (req, res) => {
   try {
+    req.body.filter = {}
     if (!req.body.user.isBoss) {
       req.body.filter.userId = req.body.user.userId
     }
