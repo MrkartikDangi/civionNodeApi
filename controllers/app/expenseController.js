@@ -253,7 +253,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
         let notificationData = {
           userid: getExpenseDetails[0]?.userId,
           subject: 'Expense',
-          message: `${req.body.user.username}, your expense report has been ${data.status}. Period: ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} to ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}.`,
+          message: `Your expense report has been ${data.status}. Period: ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} to ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}.`,
           created_by: req.body.user.userId
         }
         await notification.addNotificationData(notificationData)
@@ -273,7 +273,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
         let notificationData = {
           userid: getMileageDetails[0]?.userId,
           subject: 'Mileage',
-          message: `${req.body.user.username}, your mileage report has been ${data.status}.Dates covered: ${mileagerangeDates}`,
+          message: `Your mileage report has been ${data.status}.Dates covered: ${mileagerangeDates}`,
           created_by: req.body.user.userId
         }
         await notification.addNotificationData(notificationData)

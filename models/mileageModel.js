@@ -22,7 +22,7 @@ mileage.getUserMileage = (postData) => {
         if (postData.filter && postData.filter.status) {
             whereCondition += ` AND km.status = '${postData.filter.status}'`
         }
-        let query = `SELECT km.*, IFNULL(DATE_FORMAT(km.date, '%Y-%m-%d %H:%i:%s'), '') AS date, IFNULL(DATE_FORMAT(km.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at, IFNULL((SELECT JSON_ARRAYAGG(JSON_OBJECT('latitude', coord.latitude, 'longitude', coord.longitude)) FROM kps_mileage_coordinates AS coord WHERE coord.mileage_id = km.id), JSON_ARRAY()) AS coordinates , ku.username FROM kps_mileage AS km LEFT JOIN kps_users ku ON ku.id = km.user_id WHERE 1 = 1 ${whereCondition};`
+        let query = `SELECT km.*, IFNULL(DATE_FORMAT(km.date, '%Y-%m-%d %H:%i:%s'), '') AS date, IFNULL(DATE_FORMAT(km.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at, IFNULL((SELECT JSON_ARRAYAGG(JSON_OBJECT('latitude', coord.latitude, 'longitude', coord.longitude)) FROM kps_mileage_coordinates AS coord WHERE coord.mileage_id = km.id), JSON_ARRAY()) AS coordinates , ku.username FROM kps_mileage AS km LEFT JOIN kps_users ku ON ku.id = km.user_id WHERE 1 = 1 ${whereCondition} ORDER BY id DESC;`
         let values = []
         db.query(query, values, (err, res) => {
             if (err) {

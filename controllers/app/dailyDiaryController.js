@@ -37,14 +37,14 @@ exports.createDailyDiary = async (req, res) => {
   try {
     db.beginTransaction()
      let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
-    if (!getScheduleData) {
-      return generic.validationError(req, res, { message: "project does'nt exists" });
+    if (!getScheduleData.length) {
+      return generic.validationError(req, res, { message: "schedule does'nt exists" });
     }
     const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } })
     if (existingDailyEntry.length) {
       db.rollback()
       return generic.error(req, res, {
-        message: `You have already submitted a daily entry for this project on this date ${moment(selectedDate).format("DD-MMM-YYYY")}.`,
+        message: `You have already submitted a daily entry for this project on this date ${moment(req.body.selectedDate).format("DD-MMM-YYYY")}.`,
       });
     }
     let existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { reportNumber: req.body.reportNumber } });
@@ -94,6 +94,7 @@ exports.createDailyDiary = async (req, res) => {
 
     }
   } catch (error) {
+    console.log('error',error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,

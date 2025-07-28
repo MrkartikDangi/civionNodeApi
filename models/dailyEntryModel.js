@@ -24,6 +24,13 @@ dailyEntry.getDailyEntry = (postData) => {
       if (err) {
         reject(err)
       } else {
+        if (res.length) {
+          if (res.length) {
+            for (let row of res) {
+              row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(",") : []
+            }
+          }
+        }
         resolve(res)
       }
 
@@ -113,6 +120,7 @@ dailyEntry.createDailyEntry = (postData) => {
       contract_number: postData.contractNumber,
       component: postData.component,
       description: postData.description,
+      photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
       userId: postData.user.userId,
       created_by: postData.user.userId,
       created_at: postData.user.dateTime

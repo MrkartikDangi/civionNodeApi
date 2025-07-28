@@ -1,6 +1,6 @@
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
-const Project = require("../../models/projectModel");
+const Schedule = require("../../models/scheduleModel");
 const dailyEntry = require("../../models/dailyEntryModel");
 const dailyDiary = require("../../models/dailyDiaryModel");
 const fs = require("fs");
@@ -18,9 +18,9 @@ exports.createDailyEntry = async (req, res) => {
   }
   try {
     db.beginTransaction()
-    const checkProjectExist = await Project.getProjectList({ filter: { projectId: req.body.projectId } })
-    if (!checkProjectExist) {
-      return generic.validationError(req, res, { message: "Invalid project ID, project not found" });
+    let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
+    if (!getScheduleData.length) {
+      return generic.validationError(req, res, { message: "schedule does'nt exists" });
     }
     const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
     const existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
@@ -83,7 +83,7 @@ exports.createDailyEntry = async (req, res) => {
       });
 
     } else {
-      
+
       db.rollback()
       return generic.error(req, res, {
         message: "Failed to create daily entry",
@@ -91,7 +91,7 @@ exports.createDailyEntry = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -119,7 +119,7 @@ exports.getDailyEntry = async (req, res) => {
       data: dailyEntries,
     });
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

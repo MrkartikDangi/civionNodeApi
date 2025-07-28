@@ -13,17 +13,23 @@ dailyDiary.getDailyDiary = (postData) => {
             whereCondition += ` AND schedule_id = ${postData.filter.schedule_id}`
         }
         if (postData.filter && postData.filter.selectedDate) {
-            whereCondition += ` AND selectedDate = ${postData.filter.userId}`
+            whereCondition += ` AND selectedDate = '${postData.filter.selectedDate}'`
         }
         if (postData.filter && postData.filter.reportNumber) {
             whereCondition += ` AND reportNumber = '${postData.filter.reportNumber}'`
         }
         let query = `SELECT kps_daily_diary.*,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at FROM kps_daily_diary WHERE 1 = 1 ${whereCondition}`
+        
         let queryValues = []
         db.query(query, queryValues, (err, res) => {
             if (err) {
                 reject(err)
             } else {
+                if (res.length) {
+                    for (let row of res) {
+                        row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(",") : []
+                    }
+                }
                 resolve(res)
             }
 
@@ -44,6 +50,7 @@ dailyDiary.createDailyDiary = (postData) => {
             description: postData.description,
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
+            photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
             userId: postData.user.userId,
             created_by: postData.user.userId,
             created_at: postData.user.dateTime
@@ -73,6 +80,7 @@ dailyDiary.updateDailyDiary = (postData) => {
             description: postData.description,
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
+            photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
             userId: postData.user.userId,
             updated_by: postData.user.userId,
             updated_at: postData.user.dateTime,

@@ -252,6 +252,7 @@ router.post(
       check("reportNumber", "reportNumber is required").notEmpty(),
       check("ownerContact", "ownerContact is required").notEmpty(),
       check("description", "description is required").notEmpty(),
+      check("photoFiles", "photoFiles is required").notEmpty(),
     ],
   ]),
   authenticateJWT,
@@ -272,6 +273,8 @@ router.post(
       check("selectedDate", "selectedDate is required").notEmpty(),
       check("location", "location is required").notEmpty(),
       check("reportNumber", "reportNumber is required").notEmpty(),
+      check("photoFiles", "photoFiles is required").notEmpty(),
+
     ],
   ]),
   authenticateJWT,
@@ -285,6 +288,8 @@ router.post(
       check("projectId", "projectId is required").notEmpty(),
       check("startDate", "startDate is required").notEmpty(),
       check("endDate", "endDate is required").notEmpty(),
+      check("photoFiles", "photoFiles is required").notEmpty(),
+
     ],
   ]),
   authenticateJWT,
