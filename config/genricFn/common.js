@@ -501,16 +501,7 @@ Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '', subFo
     const client = Client.init({
       authProvider: (done) => done(null, getAccessToken[0]?.access_token)
     });
-    const drives = await client.api('/drives').get();
-    console.log('drives', drives);
-    const res = await axios.get('https://graph.microsoft.com/v1.0/users', {
-      headers: {
-        Authorization: `Bearer ${getAccessToken[0]?.access_token}`,
-      },
-    });
-
-    // console.log(res.data.value.map(user => user.userPrincipalName));
-    return
+    
 
     const fileContent = await axios.get(filePath, { responseType: 'arraybuffer' });
     const mimeType = Generic.getMimeType(fileName);
@@ -657,7 +648,7 @@ Generic.sendExpenseMileageMail = async (postData) => {
     const emailHTML = emailTemplate(emailData);
 
     let result = await Generic.sendApprovalEmail(
-      "kpdangi660@gmail.com",
+      "aastha.sharma@kps.ca",
       `${type} Report Approved`,
       emailHTML,
       "kanhaiyalalverma686@gmail.com",
