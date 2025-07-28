@@ -57,6 +57,7 @@ exports.addExpense = async (req, res) => {
       let notificationData = {
         subject: 'Expense',
         message: `${req.body.user.username} has submitted an expense report for the period ${moment(req.body.startDate).format('DD-MMM-YYYY')} to ${moment(req.body.endDate).format('DD-MMM-YYYY')} with a total amount of ₹${req.body.expenseAmount}.`,
+        for_boss: '1',
         created_by: req.body.user.userId
       }
       await notification.addNotificationData(notificationData)
