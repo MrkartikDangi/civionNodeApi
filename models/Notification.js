@@ -32,7 +32,7 @@ notification.addNotificationData = (postData) => {
       userid: postData.userid,
       subject: postData.subject,
       message: postData.message,
-      for_boss: postData.for_boss,
+      for_boss: postData.for_boss || '0',
       created_by: postData.created_by,
       created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
     }
