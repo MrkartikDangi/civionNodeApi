@@ -45,13 +45,12 @@ expense.getExpenseType = (postData) => {
     let query = ``
     let queryValues
     if (postData.filter) {
-      query = `SELECT ket.title,ket.amount,ket.category,ket.status,ket.created_by,ku.username FROM kps_expense_type AS ket LEFT JOIN kps_users AS ku ON ku.id = ket.created_by WHERE ket.id IN (?) AND ket.status = ? `
-      queryValues = [postData.filter.id, postData.filter.status]
+      query = `SELECT ket.title,ket.amount,ket.category,ket.status,ket.created_by,ku.username FROM kps_expense_type AS ket LEFT JOIN kps_users AS ku ON ku.id = ket.created_by WHERE ket.id IN (${postData.filter.id}) AND ket.status = ? `
+      queryValues = [postData.filter.status]
     } else {
       query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
       queryValues = [postData.expense_id]
     }
-
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
