@@ -648,7 +648,7 @@ Generic.sendExpenseMileageMail = async (postData) => {
     const emailHTML = emailTemplate(emailData);
 
     let result = await Generic.sendApprovalEmail(
-      "kpdangi660@gmail.com",
+      "aastha.sharma@kps.ca",
       `${type} Report Approved`,
       emailHTML,
       "kanhaiyalalverma686@gmail.com",
