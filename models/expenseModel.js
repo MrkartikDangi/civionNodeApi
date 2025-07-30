@@ -46,7 +46,7 @@ expense.getExpenseType = (postData) => {
     let queryValues
     if (postData.filter) {
       query = `SELECT ket.title,ket.amount,ket.category,ket.status,ket.created_by,ku.username FROM kps_expense_type AS ket LEFT JOIN kps_users AS ku ON ku.id = ket.created_by WHERE ket.id IN (?) AND ket.status = ? `
-      queryValues = [postData.filter.id,postData.filter.status]
+      queryValues = [postData.filter.id, postData.filter.status]
     } else {
       query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
       queryValues = [postData.expense_id]
@@ -65,7 +65,11 @@ expense.getExpenseType = (postData) => {
 }
 expense.getExpenseTypeImage = (postData) => {
   return new Promise((resolve, reject) => {
-    let query = `SELECT  id,path,folder_name,created_by , IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense_type_image.folder_name,'/', kps_expense_type_image.path), '') as file_url FROM kps_expense_type_image WHERE expense_type_id = ?`
+    let whereCondition = ` AND expense_type_id = ?`
+    if (postData.filter && postData.filter.expense_type_id) {
+      whereCondition = ` AND expense_type_id IN (${postData.filter.expense_type_id})`
+    }
+    let query = `SELECT  id,path,folder_name,created_by , IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense_type_image.folder_name,'/', kps_expense_type_image.path), '') as file_url FROM kps_expense_type_image WHERE 1 = 1 ${whereCondition}`
     let queryValues = [postData.expense_type_id]
     db.query(query, queryValues, (err, res) => {
       if (err) {

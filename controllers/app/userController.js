@@ -4,6 +4,9 @@ const { validationResult, matchedData } = require("express-validator");
 const User = require("../../models/userModel");
 const db = require("../../config/db")
 const moment = require("moment")
+const fs = require("fs");
+const handlebars = require("handlebars");
+const path = require("path")
 
 exports.registerUser = async (req, res) => {
   const errors = validationResult(req);
@@ -193,12 +196,19 @@ exports.forgotPassword = async (req, res) => {
     }
     let updateCodeDetails = await User.updateCodeDetails(updatedCode)
     if (updateCodeDetails.affectedRows) {
+      const emailTemplatePath = path.join(
+        __dirname,
+        "../../view/forgetPasswordTemplate.html",
+      );
+      const emailTemplateSource = fs.readFileSync(emailTemplatePath, "utf8");
+      const emailTemplate = handlebars.compile(emailTemplateSource);
+      const emailHTML = emailTemplate({code:code});
       let data = {
         to: 'aastha.sharma@kps.ca',
         cc: 'kanhaiyalalverma686@gmail.com',
         bcc: 'Faizahmadofficial293@gmail.com',
         subject: `Password Reset Verification Code`,
-        text: `Your verification code is: ${code}`,
+        html: emailHTML,
       };
       let result = await generic.sendEmails(data);
       if (result) {
@@ -220,6 +230,7 @@ exports.forgotPassword = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log('error',error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"

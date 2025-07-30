@@ -34,7 +34,7 @@ notification.addNotificationData = (postData) => {
       message: postData.message,
       for_boss: postData.for_boss || '0',
       created_by: postData.created_by,
-      created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      created_at: postData.dateTime
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_notifications', insertedValues]
@@ -51,7 +51,7 @@ notification.updateNotificationStatus = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedValues = {
       is_read: 1,
-      updated_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+      updated_at: postData.user.dateTime
     }
     let query = `UPDATE ?? SET ? WHERE id IN (${postData.id})`
     let values = ['kps_notifications', insertedValues]

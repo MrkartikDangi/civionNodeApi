@@ -56,9 +56,10 @@ exports.addExpense = async (req, res) => {
       }
       let notificationData = {
         subject: 'Expense',
-        message: `${req.body.user.username} has submitted an expense report for the period ${moment(req.body.startDate).format('DD-MMM-YYYY')} to ${moment(req.body.endDate).format('DD-MMM-YYYY')} with a total amount of ₹${req.body.expenseAmount}.`,
+        message: `${req.body.user.username} has submitted an expense report with a total amount of $${(req.body.expenseAmount + req.body.mileageExpense ).toFixed(2)}.`,
         for_boss: '1',
-        created_by: req.body.user.userId
+        created_by: req.body.user.userId,
+        dateTime: req.body.user.dateTime
       }
       await notification.addNotificationData(notificationData)
       db.commit()
@@ -254,8 +255,9 @@ exports.updateExpenseItemStatus = async (req, res) => {
         let notificationData = {
           userid: getExpenseDetails[0]?.userId,
           subject: 'Expense',
-          message: `Your expense report has been ${data.status}. Period: ${moment(getExpenseDetails[0]?.startDate).format('DD-MMM-YYYY')} to ${moment.utc(getExpenseDetails[0]?.endDate).format('DD-MMM-YYYY')}.`,
-          created_by: req.body.user.userId
+          message: `Your expense report has been ${data.status}.`,
+          created_by: req.body.user.userId,
+          dateTime: req.body.user.dateTime
         }
         await notification.addNotificationData(notificationData)
       }
@@ -270,11 +272,11 @@ exports.updateExpenseItemStatus = async (req, res) => {
         }
         await expense.updateExpenseMileageStatus(data)
         let getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: mileageIds.join(',') } })
-        let mileagerangeDates = getMileageDetails.map((x) => moment(x.date).format('DD-MMM-YYYY')).join(',')
+        // let mileagerangeDates = getMileageDetails.map((x) => moment(x.date).format('DD-MMM-YYYY')).join(',')
         let notificationData = {
           userid: getMileageDetails[0]?.user_id,
           subject: 'Mileage',
-          message: `Your mileage report has been ${data.status}.Dates covered: ${mileagerangeDates}`,
+          message: `Your mileage report has been ${data.status}.`,
           created_by: req.body.user.userId
         }
         await notification.addNotificationData(notificationData)

@@ -501,7 +501,7 @@ Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '', subFo
     const client = Client.init({
       authProvider: (done) => done(null, getAccessToken[0]?.access_token)
     });
-    
+
 
     const fileContent = await axios.get(filePath, { responseType: 'arraybuffer' });
     const mimeType = Generic.getMimeType(fileName);
@@ -601,10 +601,10 @@ Generic.sendExpenseMileageMail = async (postData) => {
       if (getExpenseType.length) {
         emailData.employeeName = getExpenseType[0]?.username
         emailData.totalApprovedAmount = getExpenseType.reduce((sum, expense) => sum + expense.amount, 0).toFixed(2)
-        getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: postData.item_id })
+        getExpenseTypeImages = await expense.getExpenseTypeImage({filter:{ expense_type_id: postData.item_id }})
         emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
         emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
-        emailData.images = getExpenseTypeImages.length ? getExpenseTypeImages : []
+        emailData.images = getExpenseTypeImages.length ? getExpenseTypeImages.map((x) => ({ path: x.file_url })) : []
       }
     }
     // if (postData.type == 'expense' && postData.item_id == "") {
@@ -648,7 +648,7 @@ Generic.sendExpenseMileageMail = async (postData) => {
     const emailHTML = emailTemplate(emailData);
 
     let result = await Generic.sendApprovalEmail(
-      "aastha.sharma@kps.ca",
+      "kpdangi660@gmail.com",
       `${type} Report Approved`,
       emailHTML,
       "kanhaiyalalverma686@gmail.com",
