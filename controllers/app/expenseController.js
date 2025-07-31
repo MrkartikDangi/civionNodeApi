@@ -54,16 +54,14 @@ exports.addExpense = async (req, res) => {
           await mileage.updateMileageAppendStatus({ id: row.id, dateTime: req.body.user.dateTime, expense_id: addExpense.insertId })
         }
       }
-      if (req.body.expenseAmount && req.body.mileageExpense !== 0) {
-        let notificationData = {
-          subject: 'Expense',
-          message: `${req.body.user.username} has submitted an expense and mileage report with a total amount of $${(req.body.expenseAmount + req.body.mileageExpense).toFixed(2)}.`,
-          for_boss: '1',
-          created_by: req.body.user.userId,
-          dateTime: req.body.user.dateTime
-        }
-        await notification.addNotificationData(notificationData)
+      let notificationData = {
+        subject: 'Expense',
+        message: `${req.body.user.username} has submitted an expense and mileage report with a total amount of $${(req.body.expenseAmount + req.body.mileageExpense).toFixed(2)}.`,
+        for_boss: '1',
+        created_by: req.body.user.userId,
+        dateTime: req.body.user.dateTime
       }
+      await notification.addNotificationData(notificationData)
       db.commit()
       return generic.success(req, res, {
         message: "Expense successfully created",
@@ -141,7 +139,7 @@ exports.getPendingApprovalList = async (req, res) => {
   }
 };
 exports.updateExpenseItemStatus = async (req, res) => {
-  console.log('req.body',req.body)
+  console.log('req.body', req.body)
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const x = matchedData(req);
