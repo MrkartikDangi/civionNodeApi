@@ -20,8 +20,10 @@ exports.addExpense = async (req, res) => {
       delete data.filter.mileage_ids
     }
     const mileageUser = await mileage.getUserMileage(data);
-    if (!mileageUser) {
-      req.body.mileageExpense = 0
+    if (!mileageUser.length) {
+      return generic.error(req, res, {
+        message: "This mileage has already been included in your submitted expense.",
+      });
     } else {
       req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
     }
@@ -226,7 +228,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
