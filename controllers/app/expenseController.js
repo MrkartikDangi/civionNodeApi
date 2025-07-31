@@ -13,19 +13,18 @@ exports.addExpense = async (req, res) => {
   try {
     db.beginTransaction()
     let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
-    let data = {
-      filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' }
-    }
     if (mileage_ids == "") {
-      delete data.filter.mileage_ids
-    }
-    const mileageUser = await mileage.getUserMileage(data);
-    if (!mileageUser.length) {
-      return generic.error(req, res, {
-        message: "This mileage has already been included in your submitted expense.",
-      });
+      req.body.mileageExpense = 0
     } else {
-      req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
+      const mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' } });
+      if (!mileageUser.length) {
+        return generic.error(req, res, {
+          message: "This mileage has already been included in your submitted expense.",
+        });
+      } else {
+        req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
+      }
+
     }
     // req.body.pdfBaseName = path.basename(req.body.receipt);
     // req.body.folder_name = path.dirname(req.body.receipt);
