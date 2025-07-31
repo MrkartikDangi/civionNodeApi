@@ -413,12 +413,6 @@ router.get(
   expenseController.getPendingApprovalList,
 );
 router.post(
-  "/expense/approve",
-  authenticateJWT,
-  isBoss,
-  expenseController.expenseApprove,
-);
-router.post(
   "/expense/updateExpenseItemStatus",
   oneOf([
     [

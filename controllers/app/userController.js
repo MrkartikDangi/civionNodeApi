@@ -204,7 +204,7 @@ exports.forgotPassword = async (req, res) => {
       const emailTemplate = handlebars.compile(emailTemplateSource);
       const emailHTML = emailTemplate({code:code});
       let data = {
-        to: 'aastha.sharma@kps.ca',
+        to: 'aasthasharma30.97@gmail.com',
         cc: 'kanhaiyalalverma686@gmail.com',
         bcc: 'Faizahmadofficial293@gmail.com',
         subject: `Password Reset Verification Code`,
