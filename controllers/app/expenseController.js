@@ -12,7 +12,7 @@ const moment = require("moment")
 exports.addExpense = async (req, res) => {
   try {
     db.beginTransaction()
-    const mileageUser = []
+    let mileageUser = []
     let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
     if (mileage_ids == "") {
       req.body.mileageExpense = 0
