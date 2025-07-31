@@ -252,7 +252,6 @@ router.post(
       check("reportNumber", "reportNumber is required").notEmpty(),
       check("ownerContact", "ownerContact is required").notEmpty(),
       check("description", "description is required").notEmpty(),
-      check("photoFiles", "photoFiles is required").notEmpty(),
     ],
   ]),
   authenticateJWT,

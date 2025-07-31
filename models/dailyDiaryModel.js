@@ -50,7 +50,7 @@ dailyDiary.createDailyDiary = (postData) => {
             description: postData.description,
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
-            photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
+            // photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
             userId: postData.user.userId,
             created_by: postData.user.userId,
             created_at: postData.user.dateTime
@@ -80,7 +80,7 @@ dailyDiary.updateDailyDiary = (postData) => {
             description: postData.description,
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
-            photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
+            // photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
             userId: postData.user.userId,
             updated_by: postData.user.userId,
             updated_at: postData.user.dateTime,
