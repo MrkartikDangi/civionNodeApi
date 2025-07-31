@@ -159,9 +159,9 @@ exports.updateExpenseItemStatus = async (req, res) => {
     };
     let itemIds = []
     let mileageIds = []
+    let getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: req.body.expense_id } })
     if (req.body.type == 'expense') {
       if (req.body.items && req.body.items.length) {
-        let getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: req.body.expense_id } })
         for (let row of req.body.items) {
           itemIds.push(row.id)
           row.expense_id = req.body.expense_id
@@ -226,6 +226,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
     }
 
   } catch (error) {
+    console.log('error',error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
