@@ -54,14 +54,16 @@ exports.addExpense = async (req, res) => {
           await mileage.updateMileageAppendStatus({ id: row.id, dateTime: req.body.user.dateTime, expense_id: addExpense.insertId })
         }
       }
-      let notificationData = {
-        subject: 'Expense',
-        message: `${req.body.user.username} has submitted an expense report with a total amount of $${(req.body.expenseAmount + req.body.mileageExpense ).toFixed(2)}.`,
-        for_boss: '1',
-        created_by: req.body.user.userId,
-        dateTime: req.body.user.dateTime
+      if (req.body.expenseAmount && req.body.mileageExpense !== 0) {
+        let notificationData = {
+          subject: 'Expense',
+          message: `${req.body.user.username} has submitted an expense and mileage report with a total amount of $${(req.body.expenseAmount + req.body.mileageExpense).toFixed(2)}.`,
+          for_boss: '1',
+          created_by: req.body.user.userId,
+          dateTime: req.body.user.dateTime
+        }
+        await notification.addNotificationData(notificationData)
       }
-      await notification.addNotificationData(notificationData)
       db.commit()
       return generic.success(req, res, {
         message: "Expense successfully created",
@@ -102,6 +104,7 @@ exports.getExpense = async (req, res) => {
           row.mileage = []
         }
         if (row.expenseType.length) {
+          // let expenseTypeId = row.expenseType.length ? row.expenseType.map((x) => x.id).join(",") : ""
           for (let element of row.expenseType) {
             element.images = await expense.getExpenseTypeImage({ expense_type_id: element.id })
           }
@@ -243,6 +246,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
     let mileageIds = []
     if (req.body.type == 'expense') {
       if (req.body.items && req.body.items.length) {
+        let getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: req.body.expense_id } })
         for (let row of req.body.items) {
           itemIds.push(row.id)
           row.expense_id = req.body.expense_id
@@ -251,15 +255,16 @@ exports.updateExpenseItemStatus = async (req, res) => {
           await expense.updateExpenseItemStatus(row)
         }
         await expense.updateExpenseMileageStatus(data)
-        let getExpenseDetails = await expense.getExpenseData({ filter: { expense_id: req.body.expense_id } })
-        let notificationData = {
-          userid: getExpenseDetails[0]?.userId,
-          subject: 'Expense',
-          message: `Your expense report has been ${data.status}.`,
-          created_by: req.body.user.userId,
-          dateTime: req.body.user.dateTime
+        if (getExpenseDetails[0]?.expenseAmount !== 0) {
+          let notificationData = {
+            userid: getExpenseDetails[0]?.userId,
+            subject: 'Expense',
+            message: `Your expense report has been ${data.status}.`,
+            created_by: req.body.user.userId,
+            dateTime: req.body.user.dateTime
+          }
+          await notification.addNotificationData(notificationData)
         }
-        await notification.addNotificationData(notificationData)
       }
     } else {
       if (req.body.mileage && req.body.mileage.length) {
@@ -271,15 +276,17 @@ exports.updateExpenseItemStatus = async (req, res) => {
           await mileage.updateMileageStatus(row)
         }
         await expense.updateExpenseMileageStatus(data)
-        let getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: mileageIds.join(',') } })
-        // let mileagerangeDates = getMileageDetails.map((x) => moment(x.date).format('DD-MMM-YYYY')).join(',')
-        let notificationData = {
-          userid: getMileageDetails[0]?.user_id,
-          subject: 'Mileage',
-          message: `Your mileage report has been ${data.status}.`,
-          created_by: req.body.user.userId
+        if (getExpenseDetails[0]?.mileageAmount !== 0) {
+          let getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: mileageIds.join(',') } })
+          // let mileagerangeDates = getMileageDetails.map((x) => moment(x.date).format('DD-MMM-YYYY')).join(',')
+          let notificationData = {
+            userid: getMileageDetails[0]?.user_id,
+            subject: 'Mileage',
+            message: `Your mileage report has been ${data.status}.`,
+            created_by: req.body.user.userId
+          }
+          await notification.addNotificationData(notificationData)
         }
-        await notification.addNotificationData(notificationData)
       }
     }
     if (data.status == 'Approved') {
