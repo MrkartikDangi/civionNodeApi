@@ -142,7 +142,6 @@ exports.getPendingApprovalList = async (req, res) => {
   }
 };
 exports.updateExpenseItemStatus = async (req, res) => {
-  console.log('req.body', req.body)
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const x = matchedData(req);

@@ -5,7 +5,6 @@ const mileage = () => { }
 
 
 mileage.getUserMileage = (postData) => {
-    console.log('postData',postData)
     return new Promise((resolve, reject) => {
         let whereCondition = ``
         if (postData.filter && postData.filter.userId) {
