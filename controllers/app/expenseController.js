@@ -19,6 +19,7 @@ exports.addExpense = async (req, res) => {
     } else {
       mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' } });
       if (!mileageUser.length) {
+        db.rollback()
         return generic.error(req, res, {
           message: "This mileage has already been included in your submitted expense.",
         });
@@ -200,7 +201,8 @@ exports.updateExpenseItemStatus = async (req, res) => {
             userid: getMileageDetails[0]?.user_id,
             subject: 'Mileage',
             message: `Your mileage report has been ${data.status}.`,
-            created_by: req.body.user.userId
+            created_by: req.body.user.userId,
+            dateTime: req.body.user.dateTime
           }
           await notification.addNotificationData(notificationData)
         }
