@@ -12,11 +12,12 @@ const moment = require("moment")
 exports.addExpense = async (req, res) => {
   try {
     db.beginTransaction()
+    const mileageUser = []
     let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
     if (mileage_ids == "") {
       req.body.mileageExpense = 0
     } else {
-      const mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' } });
+      mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' } });
       if (!mileageUser.length) {
         return generic.error(req, res, {
           message: "This mileage has already been included in your submitted expense.",
