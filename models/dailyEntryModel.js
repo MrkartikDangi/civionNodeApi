@@ -141,7 +141,7 @@ dailyEntry.addEquipmentsData = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
       daily_entry_id: postData.dailyEntryId,
-      equipment_name: postData.equipmentName,
+      equipment_name: postData.equipment_name,
       quantity: postData.quantity,
       hours: postData.hours,
       total_hours: postData.totalHours,
