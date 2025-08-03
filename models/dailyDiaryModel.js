@@ -25,11 +25,6 @@ dailyDiary.getDailyDiary = (postData) => {
             if (err) {
                 reject(err)
             } else {
-                if (res.length) {
-                    for (let row of res) {
-                        row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(",") : []
-                    }
-                }
                 resolve(res)
             }
 
@@ -42,7 +37,6 @@ dailyDiary.createDailyDiary = (postData) => {
         let insertedData = {
             schedule_id: postData.schedule_id,
             selectedDate: postData.selectedDate,
-            owner: postData.owner,
             ownerProjectManager: postData.ownerProjectManager,
             contractNumber: postData.contractNumber,
             contractor: postData.contractor,
@@ -50,7 +44,6 @@ dailyDiary.createDailyDiary = (postData) => {
             description: postData.description,
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
-            // photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
             userId: postData.user.userId,
             created_by: postData.user.userId,
             created_at: postData.user.dateTime
@@ -72,7 +65,6 @@ dailyDiary.updateDailyDiary = (postData) => {
         let updatedValues = {
             schedule_id: postData.schedule_id,
             selectedDate: postData.selectedDate,
-            owner: postData.owner,
             ownerProjectManager: postData.ownerProjectManager,
             contractNumber: postData.contractNumber,
             contractor: postData.contractor,
@@ -80,7 +72,6 @@ dailyDiary.updateDailyDiary = (postData) => {
             description: postData.description,
             IsChargable: postData.IsChargable,
             reportNumber: postData.reportNumber,
-            // photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
             userId: postData.user.userId,
             updated_by: postData.user.userId,
             updated_at: postData.user.dateTime,
