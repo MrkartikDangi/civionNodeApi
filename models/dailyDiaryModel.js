@@ -18,8 +18,11 @@ dailyDiary.getDailyDiary = (postData) => {
         if (postData.filter && postData.filter.reportNumber) {
             whereCondition += ` AND reportNumber = '${postData.filter.reportNumber}'`
         }
+        if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
+            whereCondition += ` AND selectedDate BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}' `
+        }
         let query = `SELECT kps_daily_diary.*,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at FROM kps_daily_diary WHERE 1 = 1 ${whereCondition}`
-        
+
         let queryValues = []
         db.query(query, queryValues, (err, res) => {
             if (err) {

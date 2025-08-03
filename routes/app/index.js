@@ -532,5 +532,17 @@ router.post(
   authenticateJWT,
   drawingController.mergePdf,
 );
+router.post(
+  "/weekly/getDailyDiaryAndEntryUserDetails",
+  oneOf([
+    [
+      check("filter.startDate", "filter.startDate is required").notEmpty(),
+      check("filter.endDate", "filter.endDate is required").notEmpty(),
+      check("filter.schedule_id", "filter.schedule_id is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  weeklyEntryController.getDailyDiaryAndEntryUserDetails,
+);
 
 module.exports = router;

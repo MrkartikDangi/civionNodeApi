@@ -94,6 +94,7 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       contractAdministrator: postData.contractAdministrator || null,
       supportCA: postData.supportCA || null,
       component: postData.component || null,
+      photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
       created_at: postData.user.dateTime,
       created_by: postData.user.userId
     }

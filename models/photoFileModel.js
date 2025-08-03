@@ -9,7 +9,7 @@ PhotoFiles.getPhotoFilesData = (postData) => {
     whereCondition += ` AND userId = ${postData.filter.userId}`
   }
   if (postData.filter && postData.filter.id) {
-    whereCondition += ` AND id = '${postData.filter.id}'`
+    whereCondition += ` AND id IN (${postData.filter.id})`
   }
   if (postData.filter && postData.filter.schedule_id) {
     whereCondition += ` AND schedule_id = '${postData.filter.schedule_id}'`
