@@ -23,12 +23,6 @@ exports.getWeeklyReport = async (req, res) => {
   try {
     let weeklyList = await weeklyEntry.getWeeklyEntry(req.body)
     if (weeklyList.length) {
-      for (let row of weeklyList) {
-        let data = { weeklyEntryId: row.id }
-        row.images = await weeklyEntry.getWeeklyEntryImages(data)
-        row.dailyDiary = await weeklyEntry.getWeeklyDailyDiary(data)
-        row.dailyEntry = await weeklyEntry.getWeeklyDailyEntry(data)
-      }
       return generic.success(req, res, {
         message: "Weekly report list.",
         data: weeklyList,
@@ -66,58 +60,14 @@ exports.createWeeklyEntry = async (req, res) => {
     if (!user.length) {
       return generic.error(req, res, { message: "User not found" });
     }
-    const checkDailyEntries = await dailyEntry.getDailyEntry({ filter: { schedule_id: req.body.schedule_id, startDate: req.body.startDate, endDate: req.body.endDate } })
-    const checkDailyDiaries = await dailyDiary.getDailyDiary({ filter: { schedule_id: req.body.schedule_id, startDate: req.body.startDate, endDate: req.body.endDate } })
-
     const createWeeklyEntry = await weeklyEntry.createWeeklyEntry(req.body)
     if (createWeeklyEntry.insertId) {
       let weeklyEntryId = createWeeklyEntry.insertId
-      let data = {}
-      if (req.body.images && req.body.images.length) {
-        for (let row of req.body.images) {
-          data = {
-            weeklyEntryId: weeklyEntryId,
-            userId: req.body.user.userId,
-            dateTime: req.body.user.dateTime,
-            path: path.basename(row.path),
-            folder_name: path.dirname(row.path)
-          }
-          await weeklyEntry.addWeeklyImages(data)
-        }
-
-      }
-      if (checkDailyDiaries && checkDailyDiaries.length) {
-        for (let row of checkDailyDiaries) {
-          data = {
-            weeklyEntryId: weeklyEntryId,
-            dateTime: req.body.user.dateTime,
-            userId: req.body.user.userId,
-            dailyDiaryId: row.id
-          }
-          await weeklyEntry.addWeeklyDailyDiary(data)
-        }
-
-      }
-      if (checkDailyEntries && checkDailyEntries.length) {
-        for (let row of checkDailyEntries) {
-          data = {
-            weeklyEntryId: weeklyEntryId,
-            dateTime: req.body.user.dateTime,
-            userId: req.body.user.userId,
-            dailyEntryId: row.id
-          }
-          await weeklyEntry.addWeeklyDailyEntry(data)
-        }
-
-      }
       db.commit()
       return generic.success(req, res, {
         message: "Weekly entry created successfully.",
         data: {
           id: weeklyEntryId,
-          project: checkProjectExist,
-          linkedDailyEntries: checkDailyEntries,
-          linkedDailyDiaries: checkDailyDiaries,
         },
       });
     } else {
