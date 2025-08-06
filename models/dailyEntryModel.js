@@ -21,7 +21,7 @@ dailyEntry.getDailyEntry = (postData) => {
     if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
       whereCondition += ` AND selected_date BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}' `
     }
-    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,kps_schedules.project_name,kps_schedules.project_number,kps_schedules.owner FROM kps_daily_entry as kde LEFT JOIN kps_schedules ON kde.schedule_id = kde.id WHERE 1 = 1 ${whereCondition}`
+    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,kps_schedules.project_name,kps_schedules.project_number,kps_schedules.owner,kps_users.username FROM kps_daily_entry as kde LEFT JOIN kps_schedules ON kde.schedule_id = kde.id LEFT JOIN kps_users ON kps_users.id = kde.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
