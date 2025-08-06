@@ -52,7 +52,6 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       cityProjectManager: postData.cityProjectManager || null,
       inspectorTimeIn: postData.inspectorTimeIn || null,
       inspectorTimeOut: postData.inspectorTimeOut || null,
-      IsChargable: postData.IsChargable || null,
       contractAdministrator: postData.contractAdministrator || null,
       supportCA: postData.supportCA || null,
       component: postData.component || null,

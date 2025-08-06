@@ -284,7 +284,7 @@ router.post(
   "/weekly/createWeeklyEntry",
   oneOf([
     [
-      check("projectId", "projectId is required").notEmpty(),
+      check("schedule_id", "schedule_id is required").notEmpty(),
       check("startDate", "startDate is required").notEmpty(),
       check("endDate", "endDate is required").notEmpty(),
       check("photoFiles", "photoFiles is required").notEmpty(),
