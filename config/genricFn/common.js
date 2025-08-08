@@ -158,7 +158,7 @@ Generic.success = async (_, res, successObject) => {
 };
 
 Generic.error = (_, res, errorObject) => {
-  return res.status(errorObject?.status || 401).json({
+  return res.status(errorObject?.status || 400).json({
     status: "error",
     message: errorObject?.message || "Unauthorized",
     error: errorObject?.details || null,
