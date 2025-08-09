@@ -3,78 +3,26 @@ const { validationResult, matchedData } = require("express-validator");
 const {
   invoiceReportTemplate,
 } = require("../../utils/pdfHandlerNew/htmlHandler");
-const Project = require("../../models/projectModel");
+const Schedule = require("../../models/scheduleModel")
 const Invoice = require("../../models/InvoiceModel");
 const ExcelJS = require("exceljs");
 const path = require("path");
 const moment = require("moment");
 const fs = require("fs");
+const db = require("../../config/db")
 
 exports.getInvoiceData = async (req, res) => {
   try {
-    const { invoiceId } = req.query;
-    let result;
-
-    if (invoiceId) {
-      result = await Invoice.findById(invoiceId)
-        .populate([
-          {
-            path: "projectId",
-          },
-          {
-            path: "userDetails.userId",
-            select: "-password",
-          },
-        ])
-        .lean();
-
-      if (!result) {
-        return generic.error(req, res, { message: "Invoice not found" });
-      }
-      result.userDetails = result.userDetails.map((detail) => {
-        detail = {
-          ...detail.userId,
-          ...detail,
-          userId: detail.userId._id,
-          _id: undefined,
-          __v: undefined,
-        };
-        return detail;
-      });
-      result = {
-        ...result,
-        invoiceId: result._id,
-        projectId: result.projectId?._id,
-        __v: undefined,
-        _id: undefined,
-      };
-    } else {
-      result = await Invoice.find()
-        .populate("projectId userDetails.userId")
-        .lean();
-      result = result.map((invoice) => ({
-        ...invoice,
-        invoiceId: invoice._id,
-        projectId: invoice.projectId?._id,
-        userDetails: invoice.userDetails.map((user) => ({
-          ...user,
-          userId: user.userId?._id,
-          userName: user.userId?.username || user.userName,
-          _id: undefined,
-        })),
-        _id: undefined,
-        __v: undefined,
-      }));
-    }
-
+    let getInvoiceData = await Invoice.getInvoiceData(req.body)
     return generic.success(req, res, {
       message: "Invoices fetched successfully",
-      data: result,
+      data: getInvoiceData,
     });
   } catch (error) {
+    console.log('error',error)
     return generic.error(req, res, {
-      message: "failed to fetch invoice details",
-      details: error.message,
+      status: 500,
+      message: "something went wrong!",
     });
   }
 };
@@ -89,48 +37,41 @@ exports.createInvoice = async (req, res) => {
     });
   }
   try {
-    const {
-      clientName,
-      fromDate,
-      toDate,
-      invoiceTo,
-      projectId,
-      clientPOReferenceNumber,
-      description,
-      userDetails,
-      totalBillableHours,
-      subTotal,
-      totalAmount,
-    } = req.body;
-
-    let { status, project, message } = await generic.validateReferences({
-      projectId,
-    });
-    if (!status) {
-      return generic.validationError(req, res, { message });
+    db.beginTransaction()
+    let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
+    if (!getScheduleData.length) {
+      return generic.validationError(req, res, { message: "schedule does'nt exists" });
+    }
+    const createInvoice = await Invoice.createInvoice(req.body);
+    if (createInvoice.insertId) {
+      if (req.body.userDetails && req.body.userDetails.length) {
+        for (let row of req.body.userDetails) {
+          row.invoiceId = createInvoice.insertId
+          row.createdByUserId = req.body.user.userId
+          row.dateTime = req.body.user.dateTime
+          await Invoice.addInvoiceUserDetails(row)
+        }
+      }
+      db.commit()
+      return generic.success(req, res, {
+        message: "Invoice created successfully.",
+        data: {
+          id: createInvoice.insertId
+        },
+      });
+    } else {
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Failed to create invoie.",
+      });
     }
 
-    const newInvoice = await Invoice.create({
-      clientName,
-      fromDate,
-      toDate,
-      invoiceTo,
-      projectId,
-      clientPOReferenceNumber,
-      description,
-      userDetails,
-      totalBillableHours,
-      subTotal,
-      totalAmount,
-    });
-    return generic.success(req, res, {
-      message: "Invoice created successfully.",
-      data: newInvoice,
-    });
   } catch (error) {
+    console.log('error', error)
+    db.rollback()
     return generic.error(req, res, {
-      message: "Error creating invoice.",
-      details: error.message,
+      status: 500,
+      message: "something went wrong!",
     });
   }
 };
@@ -215,7 +156,7 @@ exports.generateInvoiceExcel = async (req, res) => {
           "Project Name",
           "Project Number",
           "KPS Billing Description on Invoice",
-          ...uniqueUserNames, 
+          ...uniqueUserNames,
           "totalBillableHours",
           "rate",
           "subTotal",
