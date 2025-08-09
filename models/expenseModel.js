@@ -22,7 +22,74 @@ expense.getExpenseData = (postData) => {
     if (postData.filter && postData.filter.mileageStatus) {
       whereCondition += ` AND kps_expense.mileageStatus = '${postData.filter.mileageStatus}'`
     }
-    let query = `SELECT  kps_expense.*, IFNULL(DATE_FORMAT(kps_expense.createdAt, '%Y-%m-%d %H:%i:%s'), '') AS createdAt,IFNULL(DATE_FORMAT(kps_expense.updatedAt, '%Y-%m-%d %H:%i:%s'), '') AS updatedAt,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense.folder_name,'/', kps_expense.receipt), '') as receipt,kps_users.username,kps_users.email , kps_schedules.project_name,kps_schedules.project_number FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId LEFT JOIN kps_schedules ON kps_schedules.id = kps_expense.schedule_id WHERE 1 = 1 ${whereCondition} ORDER BY kps_expense.id DESC`
+    // let query = `SELECT  kps_expense.*, IFNULL(DATE_FORMAT(kps_expense.createdAt, '%Y-%m-%d %H:%i:%s'), '') AS createdAt,IFNULL(DATE_FORMAT(kps_expense.updatedAt, '%Y-%m-%d %H:%i:%s'), '') AS updatedAt,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense.folder_name,'/', kps_expense.receipt), '') as receipt,kps_users.username,kps_users.email , kps_schedules.project_name,kps_schedules.project_number FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId LEFT JOIN kps_schedules ON kps_schedules.id = kps_expense.schedule_id WHERE 1 = 1 ${whereCondition} ORDER BY kps_expense.id DESC`
+
+
+    let query = `SELECT kps_expense.*,IFNULL(DATE_FORMAT(kps_expense.createdAt, '%Y-%m-%d %H:%i:%s'), '') AS createdAt,IFNULL(DATE_FORMAT(kps_expense.updatedAt, '%Y-%m-%d %H:%i:%s'), '') AS updatedAt,IFNULL(CONCAT('${process.env.Base_Url}', kps_expense.folder_name, '/', kps_expense.receipt), '') AS receipt,kps_users.username,kps_users.email,kps_schedules.project_name,kps_schedules.project_number,
+                            COALESCE(
+                                JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'id', ket.id,
+                                        'title', ket.title,
+                                        'amount', ket.amount,
+                                        'category', ket.category,
+                                        'status', ket.status,
+                                        'created_by', ket.created_by,
+                                        'images', (
+                                            SELECT COALESCE(
+                                                JSON_ARRAYAGG(
+                                                    JSON_OBJECT(
+                                                        'id', keti.id,
+                                                        'file_url', IFNULL(CONCAT('${process.env.Base_Url}', keti.folder_name, '/', keti.path), '')
+                                                    )
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                            FROM kps_expense_type_image keti
+                                            WHERE keti.expense_type_id = ket.id
+                                        )
+                                    )
+                                ),
+                                JSON_ARRAY()
+                            ) AS expenseType,
+                              CASE  WHEN kps_expense.mileageIds IS NOT NULL 
+                                    AND kps_expense.mileageIds <> '' 
+                                THEN (
+                                    SELECT COALESCE(
+                                        JSON_ARRAYAGG(
+                                            JSON_OBJECT(
+                                                'id', km.id,
+                                                'date', DATE_FORMAT(km.date, '%Y-%m-%d %H:%i:%s'),
+                                                'startLocation', km.startLocation,
+                                                'endLocation', km.endLocation,
+                                                'duration', km.duration,
+                                                'totalDistance', km.totalDistance,
+                                                'append_to_expense', km.append_to_expense,
+                                                'amount', km.amount,
+                                                'status', km.status,
+                                                'coordinates', (
+                                                    SELECT COALESCE(
+                                                        JSON_ARRAYAGG(
+                                                            JSON_OBJECT(
+                                                                'latitude', kmc.latitude,
+                                                                'longitude', kmc.longitude
+                                                            )
+                                                        ),
+                                                        JSON_ARRAY()
+                                                    )
+                                                    FROM kps_mileage_coordinates kmc
+                                                    WHERE kmc.mileage_id = km.id
+                                                )
+                                            )
+                                        ),
+                                        JSON_ARRAY()
+                                    )
+                                    FROM kps_mileage km
+                                    WHERE FIND_IN_SET(km.id, kps_expense.mileageIds)
+                                )
+                                ELSE JSON_ARRAY()
+                            END AS mileage
+    FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId LEFT JOIN kps_schedules ON kps_schedules.id = kps_expense.schedule_id LEFT JOIN kps_expense_type ket ON ket.expense_id = kps_expense.id LEFT JOIN kps_mileage km ON km.id = kps_expense.mileageIds WHERE 1 = 1 ${whereCondition} GROUP BY kps_expense.id ORDER BY kps_expense.id DESC;`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {

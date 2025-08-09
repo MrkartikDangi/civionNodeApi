@@ -97,20 +97,20 @@ exports.getExpense = async (req, res) => {
     }
     const getExpenseData = await expense.getExpenseData(req.body)
     if (getExpenseData && getExpenseData.length) {
-      for (let row of getExpenseData) {
-        row.expenseType = await expense.getExpenseType({ expense_id: row.id })
-        if (row.mileageIds !== '') {
-          row.mileage = await mileage.getUserMileage({ filter: { mileage_ids: row.mileageIds } })
-        } else {
-          row.mileage = []
-        }
-        if (row.expenseType.length) {
-          // let expenseTypeId = row.expenseType.length ? row.expenseType.map((x) => x.id).join(",") : ""
-          for (let element of row.expenseType) {
-            element.images = await expense.getExpenseTypeImage({ expense_type_id: element.id })
-          }
-        }
-      }
+      // for (let row of getExpenseData) {
+      //   // row.expenseType = await expense.getExpenseType({ expense_id: row.id })
+      //   if (row.mileageIds !== '') {
+      //     row.mileage = await mileage.getUserMileage({ filter: { mileage_ids: row.mileageIds } })
+      //   } else {
+      //     row.mileage = []
+      //   }
+      //   // if (row.expenseType.length) {
+      //   //   // let expenseTypeId = row.expenseType.length ? row.expenseType.map((x) => x.id).join(",") : ""
+      //   //   for (let element of row.expenseType) {
+      //   //     element.images = await expense.getExpenseTypeImage({ expense_type_id: element.id })
+      //   //   }
+      //   // }
+      // }
     }
     return generic.success(req, res, {
       message: "Expense list.",

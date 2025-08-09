@@ -24,8 +24,8 @@ weeklyEntry.getWeeklyEntry = (postData) => {
         if (res.length) {
           for (let row of res) {
             row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(',') : [],
-            row.siteInspector = row.siteInspector !== null ? row.siteInspector.split(',') : [],
-            row.weeklyAllList = row.weeklyAllList !== null ? JSON.parse(row.weeklyAllList) : []
+              row.siteInspector = row.siteInspector !== null ? row.siteInspector.split(',') : [],
+              row.weeklyAllList = row.weeklyAllList !== null ? JSON.parse(row.weeklyAllList) : []
           }
         }
         resolve(res)

@@ -10,12 +10,6 @@ jobHazard.getJobHazardData = (postData) => {
       if (err) {
         reject(err)
       } else {
-        if (res.length) {
-          for (let row of res) {
-            row.activities = JSON.parse(row.activities);
-            row.tasks = JSON.parse(row.tasks);
-          }
-        }
         resolve(res)
       }
     })

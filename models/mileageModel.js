@@ -28,11 +28,6 @@ mileage.getUserMileage = (postData) => {
             if (err) {
                 reject(err)
             } else {
-                if (res.length) {
-                    for (let row of res) {
-                        row.coordinates = JSON.parse(row.coordinates)
-                    }
-                }
                 resolve(res)
             }
         })
