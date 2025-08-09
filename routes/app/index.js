@@ -300,20 +300,19 @@ router.post(
   weeklyEntryController.getWeeklyReport,
 );
 
-router.get(
+router.post(
   "/invoices/getInvoiceList",
   authenticateJWT,
   invoiceController.getInvoiceData,
 );
 router.post(
-  "/invoices/create-invoice",
+  "/invoices/createInvoice",
   oneOf([
     [
-      check("clientName", "clientName is required").notEmpty(),
+      check("invoiceTo", "invoiceTo is required").notEmpty(),
       check("fromDate", "fromDate is required").notEmpty(),
       check("toDate", "toDate is required").notEmpty(),
-      check("invoiceTo", "invoiceTo is required").notEmpty(),
-      check("projectId", "projectId is required").notEmpty(),
+      check("schedule_id", "schedule_id is required").notEmpty(),
       check("description", "description is required").notEmpty(),
       check("userDetails", "userDetails is required").notEmpty(),
       check("totalBillableHours", "totalBillableHours is required").notEmpty(),
