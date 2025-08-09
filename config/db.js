@@ -10,6 +10,12 @@ function handleDisconnect() {
     database: process.env.DB_NAME,
     charset: process.env.DB_CHARSET,
     timezone: 'Z',
+    typeCast: function (field, next) {
+      if (field.type === 'JSON') {
+        return JSON.parse(field.string());
+      }
+      return next();
+    }
   });
 
   connection.connect(err => {
