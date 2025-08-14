@@ -294,10 +294,9 @@ exports.generateInvoiceExcel = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('error', error)
     return generic.error(req, res, {
-      message: "Error creating invoice.",
-      details: error.message,
+      status: 500,
+      message: "Something went wrong !"
     });
   }
 };
