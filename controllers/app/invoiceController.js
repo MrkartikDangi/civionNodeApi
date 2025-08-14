@@ -136,10 +136,14 @@ exports.generateInvoiceExcel = async (req, res) => {
         const uniqueUserNames = [
           ...new Set(
             data.flatMap((item) =>
-              item.userDetails.map((user) => user.userName),
-            ),
+              item.userDetails.map((user) => {
+                return user.userName?.trim().split(/\s+/).filter(Boolean).map((name) => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()).join(' ') || ''
+              })
+            )
           ),
         ];
+        sheet.getColumn(6).width = 50;
+        sheet.getColumn(6).alignment = { wrapText: true, vertical: "top" };
 
         // Table Header
         const tableHeader = [
@@ -150,10 +154,10 @@ exports.generateInvoiceExcel = async (req, res) => {
           "Project Number",
           "KPS Billing Description on Invoice",
           ...uniqueUserNames,
-          "totalBillableHours",
-          "rate",
-          "subTotal",
-          "total",
+          "Total Billable Hours",
+          "Rate",
+          "Sub-Total",
+          "Total",
         ];
         const headerRow = sheet.addRow(tableHeader);
 
@@ -167,8 +171,7 @@ exports.generateInvoiceExcel = async (req, res) => {
               pattern: "solid",
               fgColor: { argb: "FFD9D9D9" },
             };
-
-            cell.alignment = { horizontal: "center", vertical: "middle" };
+            cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
             cell.border = {
               top: { style: "thin" },
               bottom: { style: "thin" },
@@ -178,59 +181,12 @@ exports.generateInvoiceExcel = async (req, res) => {
           }
         });
 
+
         sheet.getColumn(7).width = 50;
-        // const totalHoursByUser = uniqueUserNames.map(() => 0);
-        // for (let i = 0; i < data.length; i++) {
-        //   const invoice = data[i];
-        //   const dataRow = [
-        //     i + 1,
-        //     invoice.owner,
-        //     invoice.invoice_to,
-        //     invoice.projectName,
-        //     invoice.project_number,
-        //     invoice.description,
-        //   ];
-
-        //   uniqueUserNames.forEach((userName, index) => {
-        //     const user = invoice.userDetails.find(
-        //       (u) => u.userName === userName,
-        //     );
-        //     const totalHours = user ? user.totalHours : 0;
-        //     dataRow.push(totalHours);
-
-        //     totalHoursByUser[index] += totalHours;
-        //   });
-
-        //   const summary = invoice.userDetails[0];
-        //   dataRow.push(
-        //     invoice.totalBillableHours,
-        //     summary.rate,
-        //     invoice.subTotal,
-        //     invoice.totalAmount,
-        //   );
-
-        //   const row = sheet.addRow(dataRow);
-        // }
-
-        // const totalRow = sheet.addRow([
-        //   "",
-        //   "",
-        //   "",
-        //   "",
-        //   "",
-        //   "",
-        //   ...totalHoursByUser,
-        //   "",
-        //   "",
-        //   "",
-        //   "",
-        // ]);
-
-        // totalRow.font = { bold: true };
         const totalHoursByUser = uniqueUserNames.map(() => 0);
         let grandTotalBillableHours = 0;
         let grandTotalSubTotal = 0;
-        let grandTotal = 0
+        let grandTotal = 0;
 
         for (let i = 0; i < data.length; i++) {
           const invoice = data[i];
@@ -243,15 +199,13 @@ exports.generateInvoiceExcel = async (req, res) => {
             invoice.description,
           ];
 
-          // Per-user hours
           uniqueUserNames.forEach((userName, index) => {
             const user = invoice.userDetails.find((u) => u.userName === userName);
-            const totalHours = user ? user.totalBillableHours : 0; // fixed key
+            const totalHours = user ? user.totalBillableHours : null;
             dataRow.push(totalHours);
             totalHoursByUser[index] += totalHours;
           });
 
-          // Calculate totals for this invoice
           const totalBillableHours = invoice.userDetails.reduce(
             (sum, u) => sum + (u.totalBillableHours || 0),
             0
@@ -261,19 +215,19 @@ exports.generateInvoiceExcel = async (req, res) => {
             0
           );
           const rate = invoice.rate || 0;
+          const totalAmount = subTotal * 1.13;
 
-          // Push totals to row
-          dataRow.push(totalBillableHours, rate, subTotal, subTotal * 1.13); // subTotal == totalAmount
+          dataRow.push(totalBillableHours, rate, subTotal, totalAmount);
 
-          // Accumulate grand totals
+          const row = sheet.addRow(dataRow);
+          const lastColIndex = row.cellCount;
+          row.getCell(lastColIndex - 1).numFmt = '"$"#,##,##0';
+          row.getCell(lastColIndex).numFmt = '"$"#,##,##0';
+
           grandTotalBillableHours += totalBillableHours;
           grandTotalSubTotal += subTotal;
-          grandTotal += subTotal * 1.13
-
-          sheet.addRow(dataRow);
+          grandTotal += totalAmount;
         }
-
-        // Add total row
         const totalRow = sheet.addRow([
           "",
           "",
@@ -296,14 +250,14 @@ exports.generateInvoiceExcel = async (req, res) => {
 
         const buffer = await workbook.xlsx.writeBuffer();
         let Maildata = {
-          to: "kpdangi660@gmail.com",
+          to: "aasthasharma30.97@gmail.com",
           cc: "Faizahmadofficial293@gmail.com",
           bcc: "kanhaiyalalverma686@gmail.com",
           subject: `Invoice Report`,
           html: invoiceReportTemplate(dates),
           attachments: [
             {
-              filename: "invoice.xlsx",
+              filename: `Kps_Invoice_${moment(req.body.startDate).format("DD-MMM-YYYY")} to ${moment(req.body.endDate).format("DD-MMM-YYYY")}.xlsx`,
               content: buffer,
               contentType:
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
