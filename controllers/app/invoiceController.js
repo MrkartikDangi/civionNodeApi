@@ -19,7 +19,7 @@ exports.getInvoiceData = async (req, res) => {
       data: getInvoiceData,
     });
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",
@@ -86,17 +86,10 @@ exports.generateInvoiceExcel = async (req, res) => {
     });
   }
   try {
-    const isBoss = req.user.isBoss;
+
+    const isBoss = req.body.user.isBoss;
     if (isBoss) {
-      // const invoiceDateMoment = moment.utc(req.body.invoiceDate);
-      // const startOfDay = invoiceDateMoment.startOf('day').toDate();
-      // const endOfDay = invoiceDateMoment.endOf('day').toDate();
-      const data = await Invoice.find({
-        createdAt: {
-          $gte: req.body.fromDate,
-          $lte: req.body.toDate,
-        },
-      });
+      const data = await Invoice.getInvoiceExcelData(req.body)
       if (data && data.length) {
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet("KPS Monthly Invoicing Summary");
@@ -122,8 +115,8 @@ exports.generateInvoiceExcel = async (req, res) => {
           vertical: "left",
         };
 
-        const from = moment(req.body.fromDate).format("MMM-D-YYYY");
-        const to = moment(req.body.toDate).format("MMM-D-YYYY");
+        const from = moment(req.body.startDate).format("MMM-D-YYYY");
+        const to = moment(req.body.endDate).format("MMM-D-YYYY");
 
         sheet.mergeCells(`${startCol}3:${startCol}4`);
         sheet.getCell(`${startCol}3`).value = "Invoiced duration:";
@@ -186,67 +179,101 @@ exports.generateInvoiceExcel = async (req, res) => {
         });
 
         sheet.getColumn(7).width = 50;
+        // const totalHoursByUser = uniqueUserNames.map(() => 0);
+        // for (let i = 0; i < data.length; i++) {
+        //   const invoice = data[i];
+        //   const dataRow = [
+        //     i + 1,
+        //     invoice.owner,
+        //     invoice.invoice_to,
+        //     invoice.projectName,
+        //     invoice.project_number,
+        //     invoice.description,
+        //   ];
+
+        //   uniqueUserNames.forEach((userName, index) => {
+        //     const user = invoice.userDetails.find(
+        //       (u) => u.userName === userName,
+        //     );
+        //     const totalHours = user ? user.totalHours : 0;
+        //     dataRow.push(totalHours);
+
+        //     totalHoursByUser[index] += totalHours;
+        //   });
+
+        //   const summary = invoice.userDetails[0];
+        //   dataRow.push(
+        //     invoice.totalBillableHours,
+        //     summary.rate,
+        //     invoice.subTotal,
+        //     invoice.totalAmount,
+        //   );
+
+        //   const row = sheet.addRow(dataRow);
+        // }
+
+        // const totalRow = sheet.addRow([
+        //   "",
+        //   "",
+        //   "",
+        //   "",
+        //   "",
+        //   "",
+        //   ...totalHoursByUser,
+        //   "",
+        //   "",
+        //   "",
+        //   "",
+        // ]);
+
+        // totalRow.font = { bold: true };
         const totalHoursByUser = uniqueUserNames.map(() => 0);
+        let grandTotalBillableHours = 0;
+        let grandTotalSubTotal = 0;
+        let grandTotal = 0
+
         for (let i = 0; i < data.length; i++) {
           const invoice = data[i];
-          const project = await Project.findById(invoice.projectId);
           const dataRow = [
             i + 1,
-            invoice.clientName,
-            invoice.invoiceTo,
-            project ? project.projectName : "Unknown Project",
-            invoice.clientPOReferenceNumber,
+            invoice.owner,
+            invoice.invoice_to,
+            invoice.projectName,
+            invoice.project_number,
             invoice.description,
           ];
 
+          // Per-user hours
           uniqueUserNames.forEach((userName, index) => {
-            const user = invoice.userDetails.find(
-              (u) => u.userName === userName,
-            );
-            const totalHours = user ? user.totalHours : 0;
+            const user = invoice.userDetails.find((u) => u.userName === userName);
+            const totalHours = user ? user.totalBillableHours : 0; // fixed key
             dataRow.push(totalHours);
-
             totalHoursByUser[index] += totalHours;
           });
 
-          const summary = invoice.userDetails[0];
-          dataRow.push(
-            invoice.totalBillableHours,
-            summary.rate,
-            invoice.subTotal,
-            invoice.totalAmount,
+          // Calculate totals for this invoice
+          const totalBillableHours = invoice.userDetails.reduce(
+            (sum, u) => sum + (u.totalBillableHours || 0),
+            0
           );
+          const subTotal = invoice.userDetails.reduce(
+            (sum, u) => sum + (u.subTotal || 0),
+            0
+          );
+          const rate = invoice.rate || 0;
 
-          const row = sheet.addRow(dataRow);
+          // Push totals to row
+          dataRow.push(totalBillableHours, rate, subTotal, subTotal * 1.13); // subTotal == totalAmount
 
-          // const descriptionColIndex = 7;
-          // const charCount = invoice.description ? invoice.description.length : 0;
-          // const wrapCharsPerLine = 45;
-          // const lineCount = Math.ceil(charCount / wrapCharsPerLine);
-          // const estimatedHeight = Math.max(25, lineCount * 20);
+          // Accumulate grand totals
+          grandTotalBillableHours += totalBillableHours;
+          grandTotalSubTotal += subTotal;
+          grandTotal += subTotal * 1.13
 
-          // row.height = estimatedHeight;
-
-          // const descriptionCell = row.getCell(descriptionColIndex);
-          // descriptionCell.alignment = {
-          //     wrapText: true,
-          //     vertical: 'top',
-          //     horizontal: 'left'
-          // };
-
-          // descriptionCell.border = {
-          //     top: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-          //     left: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-          //     bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } },
-          //     right: { style: 'thin', color: { argb: 'FFFFFFFF' } }
-          // };
-          // row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-          //     if (colNumber !== descriptionColIndex) {
-          //         cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          //     }
-          // });
+          sheet.addRow(dataRow);
         }
 
+        // Add total row
         const totalRow = sheet.addRow([
           "",
           "",
@@ -255,23 +282,23 @@ exports.generateInvoiceExcel = async (req, res) => {
           "",
           "",
           ...totalHoursByUser,
+          grandTotalBillableHours,
           "",
-          "",
-          "",
-          "",
+          grandTotalSubTotal.toFixed(2),
+          grandTotal.toFixed(2),
         ]);
 
         totalRow.font = { bold: true };
         let dates = {
-          formattedFromDate: moment(req.body.fromDate).format("DD-MMM-YYYY"),
-          formattedToDate: moment(req.body.toDate).format("DD-MMM-YYYY"),
+          formattedFromDate: moment(req.body.startDate).format("DD-MMM-YYYY"),
+          formattedToDate: moment(req.body.endDate).format("DD-MMM-YYYY"),
         };
 
         const buffer = await workbook.xlsx.writeBuffer();
         let Maildata = {
-          to: "aasthasharma30.97@gmail.com",
-          cc: "",
-          bcc: "",
+          to: "kpdangi660@gmail.com",
+          cc: "Faizahmadofficial293@gmail.com",
+          bcc: "kanhaiyalalverma686@gmail.com",
           subject: `Invoice Report`,
           html: invoiceReportTemplate(dates),
           attachments: [
@@ -293,8 +320,8 @@ exports.generateInvoiceExcel = async (req, res) => {
         }
         // let base64Excel = buffer.toString('base64')
         // return generic.success(req, res, {
-        //     message: "Invoice excel.",
-        //     data: base64Excel
+        //   message: "Invoice excel.",
+        //   data: data
         // })
 
         // res.setHeader('Content-Disposition', 'attachment; filename=Invoice_Summary.xlsx');
@@ -303,7 +330,7 @@ exports.generateInvoiceExcel = async (req, res) => {
       } else {
         return generic.success(req, res, {
           status: 200,
-          message: `No invoice is generated from ${moment(req.body.fromDate).format("DD-MMM-YYYY")} to ${moment(req.body.toDate).format("DD-MMM-YYYY")}.`,
+          message: `No invoice is generated from ${moment(req.body.startDate).format("DD-MMM-YYYY")} to ${moment(req.body.endDate).format("DD-MMM-YYYY")}.`,
           data: data,
         });
       }
@@ -313,6 +340,7 @@ exports.generateInvoiceExcel = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log('error', error)
     return generic.error(req, res, {
       message: "Error creating invoice.",
       details: error.message,

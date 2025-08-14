@@ -327,8 +327,8 @@ router.post(
   "/invoices/generateInvoiceExcel",
   oneOf([
     [
-      check("fromDate", "fromDate is required").notEmpty(),
-      check("toDate", "toDate is required").notEmpty(),
+      check("startDate", "fromDate is required").notEmpty(),
+      check("endDate", "toDate is required").notEmpty(),
     ],
   ]),
   authenticateJWT,

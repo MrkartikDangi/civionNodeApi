@@ -118,6 +118,7 @@ dailyEntry.createDailyEntry = (postData) => {
       site_inspector: postData.siteInspector,
       time_in: postData.timeIn,
       time_out: postData.timeOut,
+      totalHours: postData.totalHours,
       owner_contact: postData.ownerContact,
       owner_project_manager: postData.ownerProjectManager,
       contract_number: postData.contractNumber,

@@ -50,6 +50,7 @@ dailyDiary.createDailyDiary = (postData) => {
             siteInspector: postData.siteInspector,
             timeIn: postData.timeIn,
             timeOut: postData.timeOut,
+            totalHours: postData.totalHours,
             userId: postData.user.userId,
             created_by: postData.user.userId,
             created_at: postData.user.dateTime
@@ -81,6 +82,7 @@ dailyDiary.updateDailyDiary = (postData) => {
             siteInspector: postData.siteInspector,
             timeIn: postData.timeIn,
             timeOut: postData.timeOut,
+            totalHours: postData.totalHours,
             userId: postData.user.userId,
             updated_by: postData.user.userId,
             updated_at: postData.user.dateTime,
