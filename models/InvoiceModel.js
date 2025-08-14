@@ -101,6 +101,7 @@ invoice.getInvoiceExcelData = (postData) => {
                             SELECT DISTINCT userId, schedule_id 
                             FROM kps_daily_diary 
                             WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+                            AND isChargable = '1'
                         ) t ON ks.id = t.schedule_id JOIN kps_users u ON u.id = t.userId 
                             LEFT JOIN (
                                 SELECT 
