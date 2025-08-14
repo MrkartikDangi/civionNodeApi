@@ -101,7 +101,7 @@ invoice.getInvoiceExcelData = (postData) => {
                             SELECT DISTINCT userId, schedule_id 
                             FROM kps_daily_diary 
                             WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
-                            AND isChargable = '1'
+                            AND IsChargable = '1'
                         ) t ON ks.id = t.schedule_id JOIN kps_users u ON u.id = t.userId 
                             LEFT JOIN (
                                 SELECT 
@@ -110,6 +110,7 @@ invoice.getInvoiceExcelData = (postData) => {
                                     SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
                                 FROM kps_daily_diary 
                                 WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+                                AND IsChargable = '1'
                                 GROUP BY schedule_id, userId
                             ) dd 
                                 ON dd.userId = u.id 
