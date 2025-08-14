@@ -7,15 +7,12 @@ weeklyEntry.getWeeklyEntry = (postData) => {
   return new Promise((resolve, reject) => {
     let whereCondition = ``
     if (postData.filter && postData.filter.schedule_id) {
-      whereCondition += ` AND schedule_id = ${postData.filter.schedule_id}`
+      whereCondition += ` AND kwe.schedule_id = ${postData.filter.schedule_id}`
     }
-    if (postData.filter && postData.filter.startDate) {
-      whereCondition += ` AND weekStartDate = '${postData.filter.startDate}'`
+    if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
+      whereCondition += ` AND kwe.created_at BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}'`
     }
-    if (postData.filter && postData.filter.endDate) {
-      whereCondition += ` AND weekEndDate = '${postData.filter.endDate}'`
-    }
-    let query = `SELECT  kps_weekly_entry.*,kps_users.username,kps_users.email FROM kps_weekly_entry LEFT JOIN kps_users ON kps_users.id = kps_weekly_entry.userId WHERE 1 = 1 ${whereCondition}`
+    let query = `SELECT  kwe.*,kps_users.username,kps_users.email FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
