@@ -21,7 +21,7 @@ dailyDiary.getDailyDiary = (postData) => {
         if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
             whereCondition += ` AND selectedDate BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}' `
         }
-        let query = `SELECT kps_daily_diary.*,kps_users.username,IFNULL(DATE_FORMAT(kps_daily_diary.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kps_daily_diary.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at FROM kps_daily_diary LEFT JOIN kps_users ON kps_users.id = kps_daily_diary.userId WHERE 1 = 1 ${whereCondition}`
+        let query = `SELECT kps_daily_diary.*,kps_users.username,IFNULL(DATE_FORMAT(kps_daily_diary.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kps_daily_diary.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at FROM kps_daily_diary LEFT JOIN kps_users ON kps_users.id = kps_daily_diary.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC`
 
         let queryValues = []
         db.query(query, queryValues, (err, res) => {
