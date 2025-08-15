@@ -84,48 +84,87 @@ invoice.addInvoiceUserDetails = (postData) => {
 }
 invoice.getInvoiceExcelData = (postData) => {
     return new Promise((resolve, reject) => {
-        let query = `SELECT ks.id AS id,ks.project_name AS projectName,ks.owner AS owner,ks.project_number,ks.description,ks.rate,ks.invoice_to,JSON_ARRAYAGG(
-                                JSON_OBJECT(
-                                    'userName', u.username,
-                                    'totalBillableHours', COALESCE(dd.totalHours, 0) + COALESCE(de.totalHours, 0),
-                                    'subTotal', (COALESCE(dd.totalHours, 0) + COALESCE(de.totalHours, 0)) * ks.rate
-                                        
-                                        
-                                )
-                            ) AS userDetails
-                              FROM kps_schedules ks JOIN (
-                            SELECT DISTINCT userId, schedule_id 
-                            FROM kps_daily_entry 
-                            WHERE selected_date BETWEEN '${postData.startDate}' AND '${postData.endDate}'
-                            UNION 
-                            SELECT DISTINCT userId, schedule_id 
-                            FROM kps_daily_diary 
-                            WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
-                            AND IsChargable = '1'
-                        ) t ON ks.id = t.schedule_id JOIN kps_users u ON u.id = t.userId 
-                            LEFT JOIN (
-                                SELECT 
-                                    schedule_id, 
-                                    userId, 
-                                    SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
-                                FROM kps_daily_diary 
-                                WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
-                                AND IsChargable = '1'
-                                GROUP BY schedule_id, userId
-                            ) dd 
-                                ON dd.userId = u.id 
-                                AND dd.schedule_id = ks.id 
-                            LEFT JOIN (
-                                SELECT 
-                                    schedule_id, 
-                                    userId,
-                                    SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
-                                FROM kps_daily_entry
-                                WHERE selected_date BETWEEN '${postData.startDate}' AND '${postData.endDate}'
-                                GROUP BY schedule_id, userId
-                            ) de 
-                                ON de.userId = u.id 
-                                AND de.schedule_id = ks.id GROUP BY ks.project_name, ks.id, ks.owner;`
+        // let query = `SELECT ks.id AS id,ks.project_name AS projectName,ks.owner AS owner,ks.project_number,ks.description,ks.rate,ks.invoice_to,JSON_ARRAYAGG(
+        //                         JSON_OBJECT(
+        //                             'userName', u.username,
+        //                             'totalBillableHours', COALESCE(dd.totalHours, 0) + COALESCE(de.totalHours, 0),
+        //                             'subTotal', (COALESCE(dd.totalHours, 0) + COALESCE(de.totalHours, 0)) * ks.rate
+
+
+        //                         )
+        //                     ) AS userDetails
+        //                       FROM kps_schedules ks JOIN (
+        //                     SELECT DISTINCT userId, schedule_id 
+        //                     FROM kps_daily_entry 
+        //                     WHERE selected_date BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        //                     UNION 
+        //                     SELECT DISTINCT userId, schedule_id 
+        //                     FROM kps_daily_diary 
+        //                     WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        //                     AND IsChargable = '1'
+        //                 ) t ON ks.id = t.schedule_id JOIN kps_users u ON u.id = t.userId 
+        //                     LEFT JOIN (
+        //                         SELECT 
+        //                             schedule_id, 
+        //                             userId, 
+        //                             SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
+        //                         FROM kps_daily_diary 
+        //                         WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        //                         AND IsChargable = '1'
+        //                         GROUP BY schedule_id, userId
+        //                     ) dd 
+        //                         ON dd.userId = u.id 
+        //                         AND dd.schedule_id = ks.id 
+        //                     LEFT JOIN (
+        //                         SELECT 
+        //                             schedule_id, 
+        //                             userId,
+        //                             SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
+        //                         FROM kps_daily_entry
+        //                         WHERE selected_date BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        //                         GROUP BY schedule_id, userId
+        //                     ) de 
+        //                         ON de.userId = u.id 
+        //                         AND de.schedule_id = ks.id GROUP BY ks.project_name, ks.id, ks.owner;`
+        let query = `SELECT  ks.id AS id,ks.project_name AS projectName,ks.owner AS owner,ks.project_number,ks.description,ks.rate,ks.invoice_to,
+        COALESCE(
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'userName', u.username,
+                    'totalBillableHours', COALESCE(dd.totalHours, 0) + COALESCE(de.totalHours, 0),
+                    'subTotal', (COALESCE(dd.totalHours, 0) + COALESCE(de.totalHours, 0)) * ks.rate
+                )
+            ), 
+            JSON_ARRAY()
+        ) AS userDetails FROM kps_schedules ks LEFT JOIN (
+        SELECT DISTINCT userId, schedule_id 
+        FROM kps_daily_entry 
+        WHERE selected_date BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        UNION 
+        SELECT DISTINCT userId, schedule_id 
+        FROM kps_daily_diary 
+        WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        AND IsChargable = '1'
+        ) t ON ks.id = t.schedule_id LEFT JOIN kps_users u ON u.id = t.userId LEFT JOIN (
+        SELECT 
+            schedule_id, 
+            userId, 
+            SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
+        FROM kps_daily_diary 
+        WHERE selectedDate BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+        AND IsChargable = '1'
+        GROUP BY schedule_id, userId
+        ) dd ON dd.userId = u.id AND dd.schedule_id = ks.id
+        LEFT JOIN (
+            SELECT 
+                schedule_id, 
+                userId,
+                SUM(CAST(totalHours AS DECIMAL(10,2))) AS totalHours
+            FROM kps_daily_entry
+            WHERE selected_date BETWEEN '${postData.startDate}' AND '${postData.endDate}'
+            GROUP BY schedule_id, userId
+        ) de ON de.userId = u.id AND de.schedule_id = ks.id
+        GROUP BY ks.id, ks.project_name, ks.owner, ks.project_number, ks.description, ks.rate, ks.invoice_to;`
         let queryValues = []
         db.query(query, queryValues, (err, res) => {
             if (err) {

@@ -91,6 +91,11 @@ exports.generateInvoiceExcel = async (req, res) => {
     if (isBoss) {
       const data = await Invoice.getInvoiceExcelData(req.body)
       if (data && data.length) {
+
+        // return generic.success(req, res, {
+        //   message: "Invoice excel.",
+        //   data: data
+        // })
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet("KPS Monthly Invoicing Summary");
 
@@ -135,10 +140,17 @@ exports.generateInvoiceExcel = async (req, res) => {
 
         const uniqueUserNames = [
           ...new Set(
-            data.flatMap((item) =>
-              item.userDetails.map((user) => {
-                return user.userName?.trim().split(/\s+/).filter(Boolean).map((name) => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()).join(' ') || ''
-              })
+            data.flatMap(item =>
+              item.userDetails
+                .map(user => {
+                  if (!user.userName || !user.userName.trim()) return null;
+                  return user.userName
+                    .trim()
+                    .split(/\s+/)
+                    .map(name => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase())
+                    .join(' ');
+                })
+                .filter(Boolean)
             )
           ),
         ];
@@ -210,17 +222,18 @@ exports.generateInvoiceExcel = async (req, res) => {
             (sum, u) => sum + (u.totalBillableHours || 0),
             0
           );
-          const subTotal = invoice.userDetails.reduce(
+          const subTotal = parseInt((invoice.userDetails.reduce(
             (sum, u) => sum + (u.subTotal || 0),
             0
-          );
+          )).toFixed(2));
           const rate = invoice.rate || 0;
-          const totalAmount = subTotal * 1.13;
+          const totalAmount = parseInt((subTotal * 1.13).toFixed(2));
 
           dataRow.push(totalBillableHours, rate, subTotal, totalAmount);
 
           const row = sheet.addRow(dataRow);
           const lastColIndex = row.cellCount;
+          row.getCell(lastColIndex - 2).numFmt = '"$"#,##,##0';
           row.getCell(lastColIndex - 1).numFmt = '"$"#,##,##0';
           row.getCell(lastColIndex).numFmt = '"$"#,##,##0';
 
@@ -238,8 +251,8 @@ exports.generateInvoiceExcel = async (req, res) => {
           ...totalHoursByUser,
           grandTotalBillableHours,
           "",
-          grandTotalSubTotal.toFixed(2),
-          grandTotal.toFixed(2),
+          grandTotalSubTotal,
+          grandTotal,
         ]);
 
         totalRow.font = { bold: true };
@@ -294,6 +307,7 @@ exports.generateInvoiceExcel = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
