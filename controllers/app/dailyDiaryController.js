@@ -41,7 +41,6 @@ exports.createDailyDiary = async (req, res) => {
       return generic.validationError(req, res, { message: "schedule does'nt exists" });
     }
     const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } })
-    console.log('existingDailyEntry',existingDailyEntry)
     if (existingDailyEntry.length) {
       db.rollback()
       return generic.error(req, res, {
