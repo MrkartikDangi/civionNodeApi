@@ -146,7 +146,7 @@ dailyEntry.addEquipmentsData = (postData) => {
     let insertedData = {
       daily_entry_id: postData.dailyEntryId,
       equipment_name: postData.equipment_name,
-      quantity: postData.quantity,
+      quantity: postData.quantity || 0,
       hours: postData.hours,
       total_hours: postData.totalHours,
       created_by: postData.userId,
@@ -170,7 +170,7 @@ dailyEntry.addVisitorsData = (postData) => {
       daily_entry_id: postData.dailyEntryId,
       visitor_name: postData.visitorName,
       company: postData.company,
-      quantity: postData.quantity,
+      quantity: postData.quantity || 0,
       hours: postData.hours,
       total_hours: postData.totalHours,
       created_by: postData.userId,
@@ -213,7 +213,7 @@ dailyEntry.addLaboursRoleData = (postData) => {
     let insertedData = {
       labour_id: postData.labour_id,
       role_name: postData.roleName,
-      quantity: postData.quantity,
+      quantity: postData.quantity || 0,
       hours: postData.hours,
       total_hours: postData.totalHours,
       created_by: postData.userId,
