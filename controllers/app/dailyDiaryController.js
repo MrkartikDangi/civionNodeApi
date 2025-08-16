@@ -17,7 +17,7 @@ exports.getDailyDiary = async (req, res) => {
       data: dailyDiaries,
     });
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -36,11 +36,11 @@ exports.createDailyDiary = async (req, res) => {
   }
   try {
     db.beginTransaction()
-     let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
+    let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
     if (!getScheduleData.length) {
       return generic.validationError(req, res, { message: "schedule does'nt exists" });
     }
-    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } })
+    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.userId, selectedDate: req.body.selectedDate } })
     if (existingDailyEntry.length) {
       db.rollback()
       return generic.error(req, res, {
@@ -94,7 +94,7 @@ exports.createDailyDiary = async (req, res) => {
 
     }
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,

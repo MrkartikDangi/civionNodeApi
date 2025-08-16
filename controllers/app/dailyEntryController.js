@@ -22,8 +22,8 @@ exports.createDailyEntry = async (req, res) => {
     if (!getScheduleData.length) {
       return generic.validationError(req, res, { message: "schedule does'nt exists" });
     }
-    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
-    const existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
+    const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.user.userId, selectedDate: req.body.selectedDate } });
+    const existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, selectedDate: req.body.selectedDate } });
 
     if (existingDailyEntry.length) {
       db.rollback()
