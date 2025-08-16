@@ -10,7 +10,7 @@ weeklyEntry.getWeeklyEntry = (postData) => {
       whereCondition += ` AND kwe.schedule_id = ${postData.filter.schedule_id}`
     }
     if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
-      whereCondition += ` AND kwe.created_at BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}'`
+      whereCondition += ` AND kwe.reportDate BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}'`
     }
     let query = `SELECT  kwe.*,kps_users.username,kps_users.email FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
@@ -39,6 +39,7 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       schedule_id: postData.schedule_id,
       weekStartDate: postData.startDate,
       weekEndDate: postData.endDate,
+      reportDate: postData.reportDate,
       contractNumber: postData.contractNumber || null,
       projectManager: postData.projectManager || null,
       consultantProjectManager: postData.consultantProjectManager || null,
