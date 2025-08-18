@@ -91,11 +91,6 @@ exports.generateInvoiceExcel = async (req, res) => {
     if (isBoss) {
       const data = await Invoice.getInvoiceExcelData(req.body)
       if (data && data.length) {
-
-        // return generic.success(req, res, {
-        //   message: "Invoice excel.",
-        //   data: data
-        // })
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet("KPS Monthly Invoicing Summary");
 
@@ -222,20 +217,21 @@ exports.generateInvoiceExcel = async (req, res) => {
             (sum, u) => sum + (u.totalBillableHours || 0),
             0
           );
-          const subTotal = parseInt((invoice.userDetails.reduce(
+          const subTotal = invoice.userDetails.reduce(
             (sum, u) => sum + (u.subTotal || 0),
             0
-          )).toFixed(2));
-          const rate = invoice.rate || 0;
-          const totalAmount = parseInt((subTotal * 1.13).toFixed(2));
+          );
+          const rate = invoice.rate ?? 0;;
+          const totalAmount = parseFloat(subTotal * 1.13);
+
 
           dataRow.push(totalBillableHours, rate, subTotal, totalAmount);
 
           const row = sheet.addRow(dataRow);
           const lastColIndex = row.cellCount;
-          row.getCell(lastColIndex - 2).numFmt = '"$"#,##,##0';
-          row.getCell(lastColIndex - 1).numFmt = '"$"#,##,##0';
-          row.getCell(lastColIndex).numFmt = '"$"#,##,##0';
+          row.getCell(lastColIndex - 2).numFmt = '"$"#,##,##0.00';
+          row.getCell(lastColIndex - 1).numFmt = '"$"#,##,##0.00';
+          row.getCell(lastColIndex).numFmt = '"$"#,##,##0.00';
 
           grandTotalBillableHours += totalBillableHours;
           grandTotalSubTotal += subTotal;
@@ -251,8 +247,8 @@ exports.generateInvoiceExcel = async (req, res) => {
           ...totalHoursByUser,
           grandTotalBillableHours,
           "",
-          grandTotalSubTotal,
-          grandTotal,
+          parseFloat(grandTotalSubTotal.toFixed(2)),
+          parseFloat(grandTotal.toFixed(2)),
         ]);
 
         totalRow.font = { bold: true };
