@@ -252,6 +252,11 @@ exports.generateInvoiceExcel = async (req, res) => {
         ]);
 
         totalRow.font = { bold: true };
+        const lastTotalColIndex = totalRow.cellCount;
+
+        // Apply currency formatting for Sub-Total and Total
+        totalRow.getCell(lastTotalColIndex - 1).numFmt = '"$"#,##0.00';
+        totalRow.getCell(lastTotalColIndex).numFmt = '"$"#,##0.00';
         let dates = {
           formattedFromDate: moment(req.body.startDate).format("DD-MMM-YYYY"),
           formattedToDate: moment(req.body.endDate).format("DD-MMM-YYYY"),
@@ -259,7 +264,7 @@ exports.generateInvoiceExcel = async (req, res) => {
 
         const buffer = await workbook.xlsx.writeBuffer();
         let Maildata = {
-          to: "aasthasharma30.97@gmail.com",
+          to: "kpdangi660@gmail.com",
           cc: "Faizahmadofficial293@gmail.com",
           bcc: "kanhaiyalalverma686@gmail.com",
           subject: `Invoice Report`,
