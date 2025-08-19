@@ -47,51 +47,30 @@ exports.createDailyDiary = async (req, res) => {
         message: `You have already submitted a daily entry for this project on this date ${moment(req.body.selectedDate).format("DD-MMM-YYYY")}.`,
       });
     }
-    let existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { reportNumber: req.body.reportNumber } });
+    let existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
+    if (existingDailyDiary.length) {
+      db.rollback()
+      return res.status(400).json({
+        message: `You have already submitted a daily diary for this project on this date ${moment(req.body.selectedDate).format("DD-MMM-YYYY")}.`,
 
-    if (existingDailyDiary && existingDailyDiary.length) {
-      req.body.id = existingDailyDiary[0]?.id
+      });
 
-      let updatedResult = await dailyDiary.updateDailyDiary(req.body)
-      if (updatedResult.affectedRows) {
-        db.commit()
-        return generic.success(req, res, {
-          status: 200,
-          message: "Daily Diary updated successfully.",
-        });
-      } else if (updatedResult && updatedResult.code === 11000) {
-        db.rollback()
-        return generic.error(req, res, {
-          message:
-            "Duplicate key violation. Another entry exists with the same unique value.",
-          details: updatedResult.message,
-        });
-      } else {
-        db.rollback()
-        return generic.error(req, res, {
-          message: "Failed to update Daily Diary.",
-          details: updatedResult?.message || "Unknown error",
-        });
-      }
+    }
+    const newDailyDiary = await dailyDiary.createDailyDiary(req.body);
+    if (newDailyDiary.insertId) {
+      db.commit()
+      return generic.success(req, res, {
+        message: "Daily Diary created successfully.",
+        data: {
+          id: newDailyDiary.insertId
+        }
+      });
+
     } else {
-      const newDailyDiary = await dailyDiary.createDailyDiary(req.body);
-      if (newDailyDiary.insertId) {
-        db.commit()
-        return generic.success(req, res, {
-          message: "Daily Diary created successfully.",
-          data: {
-            id: newDailyDiary.insertId
-          }
-        });
-
-      } else {
-        db.rollback()
-        return generic.error(req, res, {
-          message: "Failed to create daily diary",
-        });
-      }
-
-
+      db.rollback()
+      return generic.error(req, res, {
+        message: "Failed to create daily diary",
+      });
     }
   } catch (error) {
     console.log('error', error)
