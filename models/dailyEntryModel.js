@@ -147,8 +147,8 @@ dailyEntry.addEquipmentsData = (postData) => {
       daily_entry_id: postData.dailyEntryId,
       equipment_name: postData.equipment_name,
       quantity: postData.quantity || 0,
-      hours: postData.hours,
-      total_hours: postData.totalHours,
+      hours: postData.hours || 0,
+      total_hours: postData.totalHours || 0,
       created_by: postData.userId,
       created_at: postData.dateTime
     }
@@ -171,8 +171,8 @@ dailyEntry.addVisitorsData = (postData) => {
       visitor_name: postData.visitorName,
       company: postData.company,
       quantity: postData.quantity || 0,
-      hours: postData.hours,
-      total_hours: postData.totalHours,
+      hours: postData.hours || 0,
+      total_hours: postData.totalHours || 0,
       created_by: postData.userId,
       created_at: postData.dateTime
     }
@@ -192,7 +192,7 @@ dailyEntry.addLaboursData = (postData) => {
   return new Promise((resolve, reject) => {
     let insertedData = {
       daily_entry_id: postData.dailyEntryId,
-      contractor_name: postData.contractorName,
+      contractor_name: postData.contractorName || null,
       created_by: postData.userId,
       created_at: postData.dateTime
     }
@@ -214,8 +214,8 @@ dailyEntry.addLaboursRoleData = (postData) => {
       labour_id: postData.labour_id,
       role_name: postData.roleName,
       quantity: postData.quantity || 0,
-      hours: postData.hours,
-      total_hours: postData.totalHours,
+      hours: postData.hours || 0,
+      total_hours: postData.totalHours || 0,
       created_by: postData.userId,
       created_at: postData.dateTime
     }

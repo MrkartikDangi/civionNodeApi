@@ -1,7 +1,6 @@
 const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const PhotoFiles = require("../../models/photoFileModel");
-const Project = require("../../models/projectModel");
 const moment = require("moment");
 const path = require("path");
 const db = require("../../config/db");
@@ -48,7 +47,7 @@ exports.deleteAttachemnts = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -101,7 +100,7 @@ exports.createPhotoFiles = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -118,7 +117,7 @@ exports.createPhotoFiles = async (req, res) => {
         row.folder_name = path.dirname(row.path);
         await PhotoFiles.addPhotoFileData(row)
         // let filePath = `${process.env.Base_Url}${row.folder_name}/${row.fileName}`
-        // let subFolder = `${getScheduleData[0]?.project_name}_${row.folder_name}`
+        // let subFolder = `${getScheduleData[0]?.project_name}/${row.folder_name}`
         // await generic.uploadFileToOneDrive(filePath, row.fileName, row.folder_name,subFolder)
       }
       db.commit()
@@ -146,7 +145,7 @@ exports.deletePhotoFiles = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }

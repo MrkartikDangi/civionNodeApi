@@ -13,7 +13,7 @@ exports.registerUser = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -74,7 +74,7 @@ exports.updateLocation = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -110,7 +110,7 @@ exports.login = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -173,7 +173,7 @@ exports.forgotPassword = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -242,7 +242,7 @@ exports.verifyCode = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -281,7 +281,7 @@ exports.resetPassword = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -356,7 +356,7 @@ exports.changePassword = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -421,7 +421,7 @@ exports.addUserDetails = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -467,7 +467,7 @@ exports.updateBossPermission = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }

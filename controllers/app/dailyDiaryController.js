@@ -30,7 +30,7 @@ exports.createDailyDiary = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }

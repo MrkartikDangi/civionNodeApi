@@ -1,5 +1,5 @@
 const Schedule = require("../../models/scheduleModel");
-const Project = require("../../models/projectModel");
+
 const fs = require("fs");
 const Notification = require("../../models/Notification");
 const generic = require("../../config/genricFn/common");
@@ -30,7 +30,7 @@ exports.addScheduleData = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -66,7 +66,7 @@ exports.updateScheduleData = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }
@@ -110,7 +110,7 @@ exports.deleteScheduleData = async (req, res) => {
   if (!errors.isEmpty()) {
     const x = matchedData(req);
     return generic.validationError(req, res, {
-      message: "Validation failed",
+      message: "Needs to fill required input fields",
       validationObj: errors.mapped(),
     });
   }

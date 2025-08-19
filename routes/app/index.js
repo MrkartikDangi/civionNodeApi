@@ -13,7 +13,6 @@ const invoiceController = require("../../controllers/app/invoiceController");
 const jobHazardController = require("../../controllers/app/jobHazardController");
 const locationWeatherController = require("../../controllers/app/locationWeatherController");
 const photoFileController = require("../../controllers/app/photoFilesController");
-const projectController = require("../../controllers/app/projectController");
 const weeklyEntryController = require("../../controllers/app/weeklyEntryController");
 const logoController = require("../../controllers/app/logoController");
 const userController = require("../../controllers/app/userController");
@@ -69,30 +68,6 @@ const upload = multer({
   await generic.initializeOneDrive();
 })
 callOneDrive()
-
-router.post("/projects/schedules",
-  oneOf([
-    [
-      check("projectId", "projectId is required").notEmpty(),
-    ],
-  ]),
-  authenticateJWT, projectController.schedules);
-router.post("/projects/remove",
-  oneOf([
-    [
-      check("projectId", "projectId is required").notEmpty(),
-    ],
-  ]), authenticateJWT, projectController.delete);
-router.post("/projects/addProjectData",
-  oneOf([
-    [
-      check("projectName", "projectName is required").notEmpty(),
-      check("projectNumber", "projectNumber is required").notEmpty(),
-      check("owner", "owner is required").notEmpty(),
-      check("startDate", "startDate is required").notEmpty(),
-      check("endDate", "endDate is required").notEmpty(),
-    ],
-  ]), authenticateJWT, projectController.addProjectData);
 
 router.post(
   "/auth/register",
