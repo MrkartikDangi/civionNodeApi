@@ -1,8 +1,5 @@
 const Schedule = require("../../models/scheduleModel");
 const jwt = require("jsonwebtoken");
-const Project = require("../../models/projectModel");
-const UserDetails = require("../../models/userModel");
-const WeeklyModel = require("../../models/weeklyEntryModel");
 const fs = require("fs"); // Import the file system module
 const handlebars = require("handlebars");
 const Mileage = require("../../models/mileageModel");
@@ -17,6 +14,17 @@ const onedriveConfig = require("../oneDrive");
 const path = require("path");
 const expense = require("../../models/expenseModel")
 const moment = require("moment")
+// const oneDriveApi = require("onedrive-api")
+// const pdfParse = require('pdf-parse');
+// const { PDFDocument } = require('pdf-lib');
+// const PDFParser = require('pdf2json');
+// const { fromPath } = require("pdf2pic");
+// // const { createWorker } = require('tesseract.js');
+// const os = require('os');
+// const { createCanvas } = require("canvas");
+// const { execSync } = require("child_process");
+// const Tesseract = require("tesseract.js");
+
 const {
   S3Client,
   DeleteObjectCommand,
@@ -279,7 +287,7 @@ Generic.sendEmails = (data) => {
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `Admin <${process.env.EMAIL_USER}>`,
       to: data.to,
       cc: data.cc || "",
       bcc: data.bcc || "",
@@ -503,23 +511,58 @@ Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '', subFo
       authProvider: (done) => done(null, getAccessToken[0]?.access_token)
     });
 
+    // const test = await axios.get("https://graph.microsoft.com/v1.0/me/drive", {
+    //   headers: {
+    //     Authorization: `Bearer ${getAccessToken[0]?.access_token}`
+    //   }
+    // });
+    // console.log('test',test.data.name)
 
     const fileContent = await axios.get(filePath, { responseType: 'arraybuffer' });
+    // const rootItem = await oneDriveApi.items.getMetadata({
+    //   accessToken: getAccessToken[0]?.access_token,
+    //   itemId: '/root'
+    // });
+    // console.log('root', rootItem)
+    // const children = await oneDriveApi.items.listChildren({
+    //   accessToken: getAccessToken[0]?.access_token,
+    //   itemId: 'root'
+    // });
+    // console.log('items.listChildren', children);
+    // return
+
     const mimeType = Generic.getMimeType(fileName);
     const uploadPath = folderPath ? `/${folderPath}/${subFolder}/${fileName}` : `/${fileName}`;
-    console.log('onedrive', onedriveConfig)
+    // console.log('uploadPath', uploadPath)
+    // // console.log('onedrive', onedriveConfig)
 
     const response = await client
-      .api(`/users/${onedriveConfig.driveEmail}/drive/root:/${uploadPath}:/content`)
+      .api(`/users/a4077f28-4a0e-46cc-b750-89fe519872c2
+/drive/root:/${uploadPath}`)
       .header('Content-Type', mimeType)
       .put(fileContent.data);
+    console.log('response', response)
+    // let a = {
+    //   accessToken: getAccessToken[0]?.access_token,
+    //   filename: fileName,
+    //   readableStream: fileContent.data,
+    //   parentPath: uploadPath // Nested folder path in OneDrive
+    // }
+    // console.log('a', a)
+    // let response = await oneDriveApi.items.uploadSimple({
+    //   accessToken: getAccessToken[0]?.access_token,
+    //   filename: fileName,
+    //   readableStream: fileContent.data,
+    //   parentPath: uploadPath // Nested folder path in OneDrive
+    // });
+    // console.log('response', response)
 
-    return {
-      success: true,
-      webUrl: response.webUrl,
-      id: response.id,
-      name: response.name
-    };
+    // return {
+    //   success: true,
+    //   webUrl: response.webUrl,
+    //   id: response.id,
+    //   name: response.name
+    // };
   } catch (error) {
     console.error('OneDriveModel Error:', error);
     throw error;
@@ -573,13 +616,192 @@ Generic.getAccessToken = async () => {
     throw new Error('Failed to get access token');
   }
 }
-Generic.mergePdf = async (postData) => {
+// Generic.extractDrawingMap = async (postData) => {
+//   try {
+//     const DRAWING_REGEX = /\b[0-9A-Za-z]{1,3}-\d{4}-\d{2}-\d{2,3}\b/g;;
+
+//     const buffer = fs.readFileSync(postData.path);
+//     const parsed = await pdfParse(buffer);
+//     const pdfDoc = await PDFDocument.load(buffer);
+//     const pages = pdfDoc.getPages();
+
+//     const map = new Map();
+
+//     for (let i = 0; i < pages.length; i++) {
+//       const text = await parsed.text;
+//       const matches = text.match(DRAWING_REGEX);
+//       if (matches && matches.length > 0) {
+//         map.set(matches[0], i); // use first match
+//       }
+//     }
+//     return { pdfDoc, map };
+
+//   } catch (error) {
+//     console.log('error',error)
+//     throw new Error('Failed to extract drawing numbers')
+//   }
+// }
+
+//  this is working fine  < use this >
+// Generic.extractDrawingMap = async (postData) => {
+//   try {
+//     const DRAWING_REGEX = /\b[0-9A-Za-z]{1,3}-\d{4}-\d{2}-\d{2,3}\b/g;
+
+//     const buffer = fs.readFileSync(postData.path);
+//     const data = await pdfParse(buffer);
+
+//     const pageTexts = data.text.split(/\f/);
+//     const map = new Map();
+
+//     pageTexts.forEach((pageText, pageIndex) => {
+//       let normalizedText = pageText
+//         .replace(/-\s*\n\s*/g, '-') 
+//         .replace(/\n/g, ' ')        
+//         .replace(/\s+/g, ' ');
+
+//       const matches = normalizedText.match(DRAWING_REGEX);
+
+//       if (matches && matches.length) {
+//         matches.forEach(drawingNo => {
+//           if (!map.has(drawingNo)) {
+//             map.set(drawingNo, pageIndex);
+//           }
+//         });
+//         console.log(`Page ${pageIndex + 1}: Found -> ${matches.join(", ")}`);
+//       } else {
+//         console.log(`Page ${pageIndex + 1}: No drawing number found`);
+//       }
+//     });
+
+//     console.log(`\nTotal drawing numbers found in ${postData.path}: ${map.size}`);
+//     return { map };
+//   } catch (error) {
+//     console.error("Error in extractDrawingMap:", error);
+//     throw new Error("Failed to extract drawing numbers");
+//   }
+// };
+// this is also working fine
+// Generic.extractDrawingMap = async (postData) => {
+//   try {
+//     const DRAWING_REGEX = /\b[0-9A-Za-z]{1,3}-\d{4}-\d{2}-\d{2,3}\b/g;
+//     // const DRAWING_REGEX = "\\b[0-9A-Za-z]{1,3}-\\d{4}-\\d{2}-\\d{2,3}\\b";
+//     const buffer = fs.readFileSync(postData.path);
+//     const data = await pdfParse(buffer);
+//     const pageTexts = data.text.split(/\f/);
+//     const map = new Map();
+
+//     console.log(`🔍 Starting text-based extraction for ${postData.path}...`);
+
+//     // ---- Step 1: Normal text extraction ----
+//     pageTexts.forEach((pageText, pageIndex) => {
+//       let normalizedText = pageText
+//         .replace(/-\s*\n\s*/g, '-') // dash split join
+//         .replace(/\n/g, ' ')
+//         .replace(/\s+/g, ' ');
+
+//       const matches = normalizedText.match(DRAWING_REGEX);
+
+//       if (matches && matches.length) {
+//         matches.forEach(drawingNo => {
+//           if (!map.has(drawingNo)) {
+//             map.set(drawingNo, pageIndex);
+//           }
+//         });
+//       }
+//     });
+
+//     console.log(`✅ Text-based found: ${map.size} drawing numbers`);
+
+//     // ---- Step 2: OCR for pages with no text match ----
+//     const pdf2picOptions = {
+//       density: 150,
+//       saveFilename: "page",
+//       savePath: "./temp_ocr",
+//       format: "png",
+//       width: 1200,
+//       height: 1600,
+//     };
+//     const convert = fromPath(postData.path, pdf2picOptions);
+
+//     console.log(`📷 Running OCR for pages with no text match...`);
+//     for (let i = 0; i < pageTexts.length; i++) {
+//       const alreadyHas = [...map.values()].includes(i);
+//       if (alreadyHas) continue; // Skip pages already found in text extraction
+
+//       const imgResult = await convert(i + 1); // page numbers are 1-based in pdf2pic
+//       const ocrResult = await tesseract.recognize(imgResult.path, "eng");
+
+//       let ocrText = ocrResult.data.text
+//         .replace(/-\s*\n\s*/g, '-')
+//         .replace(/\n/g, ' ')
+//         .replace(/\s+/g, ' ');
+
+//       const matches = ocrText.match(DRAWING_REGEX);
+//       if (matches && matches.length) {
+//         matches.forEach(drawingNo => {
+//           if (!map.has(drawingNo)) {
+//             map.set(drawingNo, i);
+//           }
+//         });
+//         console.log(`📄 Page ${i + 1}: OCR found -> ${matches.join(", ")}`);
+//       }
+//     }
+
+//     console.log(`\n🎯 Final total drawing numbers in ${postData.path}: ${map.size}`);
+//     return { map };
+
+//   } catch (error) {
+//     console.error("Error in extractDrawingMap:", error);
+//     throw new Error("Failed to extract drawing numbers");
+//   }
+// };
+
+Generic.extractDrawingMap = async (postData, prefix = "2F-2021-01-") => {
   try {
+    const buffer = fs.readFileSync(postData.path);
+    const data = await pdfParse(buffer);
 
+    const pageTexts = data.text.split(/\f/);
+    const map = new Map();
+    const allDrawings = [];
+
+    pageTexts.forEach((pageText, pageIndex) => {
+      // 1️⃣ Remove all newlines and join numbers split by space/newline
+      let normalizedText = pageText
+        .replace(/-\s*\n\s*/g, '-')          // join hyphen + newline
+        .replace(/(\d)\s*\n\s*(\d)/g, '$1$2') // join split digits
+        .replace(/\n/g, '')                  // remove remaining newlines
+        .replace(/\s+/g, '');             // collapse spaces
+
+      // 2️⃣ Regex to match full drawing numbers starting with prefix
+      const DRAWING_REGEX = new RegExp(`\\b${prefix}\\d{1,3}\\b`, "g");
+      const matches = normalizedText.match(DRAWING_REGEX);
+
+      if (matches && matches.length) {
+        matches.forEach(drawingNo => {
+          if (!map.has(drawingNo)) map.set(drawingNo, pageIndex);
+          allDrawings.push(drawingNo);
+        });
+        console.log(`Page ${pageIndex + 1}: Found -> ${matches.join(", ")}`);
+      } else {
+        console.log(`Page ${pageIndex + 1}: No drawing number found`);
+      }
+    });
+
+    console.log(`\nTotal drawing numbers found in ${postData.path}: ${map.size}`);
+    console.log(`All matched drawing numbers: ${allDrawings.join(", ")}`);
+
+    return { map, allDrawings };
   } catch (error) {
-
+    console.error("Error in extractDrawingMap:", error);
+    throw new Error("Failed to extract drawing numbers");
   }
-}
+};
+
+
+
+
+
 Generic.sendExpenseMileageMail = async (postData) => {
   try {
     const emailTemplatePath = path.join(
