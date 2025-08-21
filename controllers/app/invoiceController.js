@@ -207,11 +207,12 @@ exports.generateInvoiceExcel = async (req, res) => {
           ];
 
           uniqueUserNames.forEach((userName, index) => {
-            const user = invoice.userDetails.find((u) => u.userName === userName);
+            const user = userName != null ? invoice.userDetails.find((u) => u.userName && u.userName.trim().toLowerCase() === userName.trim().toLowerCase()) : undefined;
             const totalHours = user ? user.totalBillableHours : null;
             dataRow.push(totalHours);
             totalHoursByUser[index] += totalHours;
           });
+
 
           const totalBillableHours = invoice.userDetails.reduce(
             (sum, u) => sum + (u.totalBillableHours || 0),
