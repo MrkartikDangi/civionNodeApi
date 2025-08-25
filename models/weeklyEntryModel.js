@@ -56,6 +56,7 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
       logo: postData.logo ? postData.logo.join(',') : null,
       signature: postData.signature,
+      pdfName: postData.pdfName,
       weeklyAllList: Object.keys(postData.weeklyAllList).length ? JSON.stringify(postData.weeklyAllList) : '',
       created_at: postData.user.dateTime,
       created_by: postData.user.userId

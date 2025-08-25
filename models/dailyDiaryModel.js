@@ -53,6 +53,7 @@ dailyDiary.createDailyDiary = (postData) => {
             totalHours: postData.totalHours,
             logo : postData.logo ? postData.logo.join(',') : null ,
             signature: postData.signature,
+            pdfName: postData.pdfName,
             userId: postData.user.userId,
             created_by: postData.user.userId,
             created_at: postData.user.dateTime
