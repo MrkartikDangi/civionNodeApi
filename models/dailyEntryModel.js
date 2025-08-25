@@ -21,7 +21,71 @@ dailyEntry.getDailyEntry = (postData) => {
     if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
       whereCondition += ` AND selected_date BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}' `
     }
-    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,kps_schedules.project_name,kps_schedules.project_number,kps_schedules.owner,kps_users.username FROM kps_daily_entry as kde LEFT JOIN kps_schedules ON kde.schedule_id = kde.id LEFT JOIN kps_users ON kps_users.id = kde.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC`
+    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,
+                        COALESCE(
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'id', kdee.id,
+                                        'equipment_name', kdee.equipment_name,
+                                        'quantity', kdee.quantity,
+                                        'hours', kdee.hours,
+                                        'total_hours', kdee.total_hours
+                                    )
+                                )
+                                FROM kps_daily_entry_equipments kdee
+                                WHERE kdee.daily_entry_id = kde.id
+                            ),
+                            JSON_ARRAY()
+                        ) AS equipmentsDetails,
+                        COALESCE(
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'id', kdev.id,
+                                        'visitor_name', kdev.visitor_name,
+                                        'company', kdev.company,
+                                        'quantity', kdev.quantity,
+                                        'hours', kdev.hours,
+                                        'total_hours', kdev.total_hours
+                                    )
+                                )
+                                FROM kps_daily_entry_visitors kdev
+                                WHERE kdev.daily_entry_id = kde.id
+                            ),
+                            JSON_ARRAY()
+                        ) AS visitorsDetails,
+                        COALESCE(
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'id', kdel.id,
+                                        'contractor_name', kdel.contractor_name,
+                                        'roleDetail',  (
+                                            SELECT COALESCE(
+                                                JSON_ARRAYAGG(
+                                                    JSON_OBJECT(
+                                                        'id', kdelr.id,
+                                                        'role_name', kdelr.role_name,
+                                                        'hours', kdelr.hours,
+                                                        'quantity', kdelr.quantity,
+                                                        'total_hours', kdelr.total_hours
+
+                                                    )
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                            FROM kps_daily_entry_labour_roles kdelr
+                                            WHERE kdelr.labour_id = kdel.id
+                                        )
+                                    )
+                                )
+                                FROM kps_daily_entry_labours kdel
+                                WHERE kdel.daily_entry_id = kde.id
+                            ),
+                            JSON_ARRAY()
+                        ) AS labourDetails,
+  kps_schedules.project_name, kps_schedules.project_number,kps_schedules.owner,kps_users.username FROM kps_daily_entry AS kde LEFT JOIN kps_schedules ON kde.schedule_id = kps_schedules.id LEFT JOIN kps_users ON kps_users.id = kde.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC;`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
@@ -30,6 +94,7 @@ dailyEntry.getDailyEntry = (postData) => {
         if (res.length) {
           if (res.length) {
             for (let row of res) {
+              row.logo = row.logo !== null ? row.logo.split(",") : []
               row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(",") : []
             }
           }

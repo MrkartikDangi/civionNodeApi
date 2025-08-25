@@ -102,24 +102,11 @@ exports.createDailyEntry = async (req, res) => {
 exports.getDailyEntry = async (req, res) => {
   try {
     const dailyEntries = await dailyEntry.getDailyEntry(req.body);
-    if (dailyEntries.length) {
-      for (let row of dailyEntries) {
-        row.equipmentsDetails = await dailyEntry.getEquipmentsDetails({ dailyEntryId: row.id })
-        row.visitorsDetails = await dailyEntry.getVisitorDetails({ dailyEntryId: row.id })
-        row.labourDetails = await dailyEntry.getLabourDetails({ dailyEntryId: row.id })
-        if (row.labourDetails.length) {
-          for (x of row.labourDetails) {
-            x.roleDetail = await dailyEntry.getLabourRoleDetails({ labour_id: x.id })
-          }
-        }
-      }
-    }
     return generic.success(req, res, {
       message: "Daily entries retrieved successfully.",
       data: dailyEntries,
     });
   } catch (error) {
-    console.log('error', error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

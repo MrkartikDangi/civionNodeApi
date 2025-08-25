@@ -28,6 +28,11 @@ dailyDiary.getDailyDiary = (postData) => {
             if (err) {
                 reject(err)
             } else {
+                if (res.length) {
+                    for (let row of res) {
+                        row.logo = row.logo !== null ? row.logo.split(",") : []
+                    }
+                }
                 resolve(res)
             }
 
@@ -51,7 +56,7 @@ dailyDiary.createDailyDiary = (postData) => {
             timeIn: postData.timeIn,
             timeOut: postData.timeOut,
             totalHours: postData.totalHours,
-            logo : postData.logo ? postData.logo.join(',') : null ,
+            logo: postData.logo ? postData.logo.join(',') : null,
             signature: postData.signature,
             pdfName: postData.pdfName,
             userId: postData.user.userId,

@@ -494,3 +494,17 @@ exports.updateBossPermission = async (req, res) => {
     });
   }
 };
+exports.getUsersList = async (req, res) => {
+  try {
+    const getUsersList = await User.checkExistingUser(req.body);
+    return generic.success(req, res, {
+      message: "Users list.",
+      data: getUsersList,
+    });
+  } catch (error) {
+    return generic.error(req, res, {
+      status: 500,
+      message: "something went wrong!",
+    });
+  }
+};

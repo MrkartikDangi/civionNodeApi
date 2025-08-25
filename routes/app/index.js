@@ -82,6 +82,9 @@ router.post(
   userController.registerUser,
 );
 router.post(
+  "/auth/getUsersList",authenticateJWT,userController.getUsersList,
+);
+router.post(
   "/auth/addUser",
   oneOf([
     [

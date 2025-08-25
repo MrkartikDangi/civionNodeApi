@@ -58,7 +58,7 @@ User.updateUserDetails = (postData) => {
       updated_at: postData.dateTime,
     }
     let query = `UPDATE ?? SET ? WHERE id = ? AND email = ?`
-    let values = ['kps_users',updatedValues, postData.id,postData.email]
+    let values = ['kps_users', updatedValues, postData.id, postData.email]
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)
@@ -151,7 +151,7 @@ User.updateBossPermission = (postData) => {
       updated_by: postData.user.userId
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
-    let values = ['kps_users',updatedValues, postData.user.userId]
+    let values = ['kps_users', updatedValues, postData.user.userId]
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)

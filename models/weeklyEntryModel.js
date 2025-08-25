@@ -12,6 +12,12 @@ weeklyEntry.getWeeklyEntry = (postData) => {
     if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
       whereCondition += ` AND kwe.reportDate BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}'`
     }
+    if (postData.filter && postData.filter.selectedDate) {
+      whereCondition += ` AND kwe.reportDate = '${postData.filter.selectedDate}'`
+    }
+    if (postData.filter && postData.filter.userId) {
+      whereCondition += ` AND userId = ${postData.filter.userId}`
+    }
     let query = `SELECT  kwe.*,kps_users.username,kps_users.email FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
