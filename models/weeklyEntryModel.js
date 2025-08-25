@@ -54,6 +54,8 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       supportCA: postData.supportCA || null,
       component: postData.component || null,
       photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
+      logo: postData.logo ? postData.logo.join(',') : null,
+      signature: postData.signature,
       weeklyAllList: Object.keys(postData.weeklyAllList).length ? JSON.stringify(postData.weeklyAllList) : '',
       created_at: postData.user.dateTime,
       created_by: postData.user.userId

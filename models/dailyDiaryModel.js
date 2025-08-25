@@ -51,6 +51,8 @@ dailyDiary.createDailyDiary = (postData) => {
             timeIn: postData.timeIn,
             timeOut: postData.timeOut,
             totalHours: postData.totalHours,
+            logo : postData.logo ? postData.logo.join(',') : null ,
+            signature: postData.signature,
             userId: postData.user.userId,
             created_by: postData.user.userId,
             created_at: postData.user.dateTime

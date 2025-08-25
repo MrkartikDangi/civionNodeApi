@@ -125,6 +125,8 @@ dailyEntry.createDailyEntry = (postData) => {
       component: postData.component,
       description: postData.description,
       photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
+      logo: postData.logo ? postData.logo.join(',') : null,
+      signature: postData.signature,
       userId: postData.user.userId,
       created_by: postData.user.userId,
       created_at: postData.user.dateTime
