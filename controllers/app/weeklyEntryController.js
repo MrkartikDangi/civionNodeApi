@@ -78,7 +78,6 @@ exports.createWeeklyEntry = async (req, res) => {
 
     }
   } catch (error) {
-    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,
@@ -122,7 +121,6 @@ exports.getDailyDiaryAndEntryUserDetails = async (req, res) => {
       }
     });
   } catch (error) {
-    console.log('errror', error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

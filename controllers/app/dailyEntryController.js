@@ -91,7 +91,6 @@ exports.createDailyEntry = async (req, res) => {
     }
 
   } catch (error) {
-    console.log('error', error)
     db.rollback()
     return generic.error(req, res, {
       status: 500,

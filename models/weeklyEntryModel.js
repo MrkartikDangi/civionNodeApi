@@ -18,7 +18,43 @@ weeklyEntry.getWeeklyEntry = (postData) => {
     if (postData.filter && postData.filter.userId) {
       whereCondition += ` AND userId = ${postData.filter.userId}`
     }
-    let query = `SELECT  kwe.*,kps_users.username,kps_users.email FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
+    let query = `SELECT  kwe.*,IFNULL(DATE_FORMAT(kwe.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kwe.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(DATE_FORMAT(kwe.reportDate, '%Y-%m-%d'), '') AS reportDate,IFNULL(DATE_FORMAT(kwe.weekStartDate, '%Y-%m-%d'), '') AS weekStartDate,IFNULL(DATE_FORMAT(kwe.weekEndDate, '%Y-%m-%d'), '') AS weekEndDate ,kps_users.username,kps_users.email, CASE  
+                         WHEN kwe.logo IS NOT NULL THEN (
+                                            COALESCE(
+                                                (
+                                                    SELECT JSON_ARRAYAGG(
+                                                        JSON_OBJECT(
+                                                            'filename',kl.logoUrl,
+                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kl.folder_name, '/', kl.logoUrl), '')
+                                                        )
+                                                    )
+                                                    FROM kps_logos kl
+                                                    WHERE FIND_IN_SET(kl.id, kwe.logo)
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                        )
+                                        ELSE JSON_ARRAY()
+                                    END AS logo,
+                                    CASE  
+                                        WHEN kwe.photoFiles IS NOT NULL THEN (
+                                            COALESCE(
+                                                (
+                                                    SELECT JSON_ARRAYAGG(
+                                                        JSON_OBJECT(
+                                                            'filename', kpfd.file_url,
+                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kpfd.folder_name, '/', kpfd.file_url), '')
+                                                        )
+                                                    )
+                                                    FROM kps_photofiles_doc kpfd
+                                                    WHERE FIND_IN_SET(kpfd.id, kwe.photoFiles)
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                        )
+                                        ELSE JSON_ARRAY()
+                                    END AS photoFiles               
+    FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
@@ -26,7 +62,6 @@ weeklyEntry.getWeeklyEntry = (postData) => {
       } else {
         if (res.length) {
           for (let row of res) {
-            row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(',') : [],
               row.siteInspector = row.siteInspector !== null ? row.siteInspector.split(',') : [],
               row.weeklyAllList = row.weeklyAllList !== null ? JSON.parse(row.weeklyAllList) : []
           }

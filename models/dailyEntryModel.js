@@ -21,55 +21,55 @@ dailyEntry.getDailyEntry = (postData) => {
     if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
       whereCondition += ` AND selected_date BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}' `
     }
-    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,
+    let query = `SELECT kde.*,IFNULL(DATE_FORMAT(kde.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kde.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(DATE_FORMAT(kde.selected_date, '%Y-%m-%d'), '') AS selected_date,
                         COALESCE(
-                            (
+                             (
                                 SELECT JSON_ARRAYAGG(
                                     JSON_OBJECT(
                                         'id', kdee.id,
                                         'equipment_name', kdee.equipment_name,
                                         'quantity', kdee.quantity,
                                         'hours', kdee.hours,
-                                        'total_hours', kdee.total_hours
+                                        'totalHours', kdee.total_hours
                                     )
                                 )
                                 FROM kps_daily_entry_equipments kdee
                                 WHERE kdee.daily_entry_id = kde.id
                             ),
                             JSON_ARRAY()
-                        ) AS equipmentsDetails,
+                        ) AS equipments,
                         COALESCE(
                             (
                                 SELECT JSON_ARRAYAGG(
                                     JSON_OBJECT(
                                         'id', kdev.id,
-                                        'visitor_name', kdev.visitor_name,
+                                        'visitorName', kdev.visitor_name,
                                         'company', kdev.company,
                                         'quantity', kdev.quantity,
                                         'hours', kdev.hours,
-                                        'total_hours', kdev.total_hours
+                                        'totalHours', kdev.total_hours
                                     )
                                 )
                                 FROM kps_daily_entry_visitors kdev
                                 WHERE kdev.daily_entry_id = kde.id
                             ),
                             JSON_ARRAY()
-                        ) AS visitorsDetails,
+                        ) AS visitors,
                         COALESCE(
                             (
                                 SELECT JSON_ARRAYAGG(
                                     JSON_OBJECT(
                                         'id', kdel.id,
-                                        'contractor_name', kdel.contractor_name,
-                                        'roleDetail',  (
+                                        'contractorName', kdel.contractor_name,
+                                        'roles',  (
                                             SELECT COALESCE(
                                                 JSON_ARRAYAGG(
                                                     JSON_OBJECT(
                                                         'id', kdelr.id,
-                                                        'role_name', kdelr.role_name,
+                                                        'roleName', kdelr.role_name,
                                                         'hours', kdelr.hours,
                                                         'quantity', kdelr.quantity,
-                                                        'total_hours', kdelr.total_hours
+                                                        'totalHours', kdelr.total_hours
 
                                                     )
                                                 ),
@@ -84,21 +84,49 @@ dailyEntry.getDailyEntry = (postData) => {
                                 WHERE kdel.daily_entry_id = kde.id
                             ),
                             JSON_ARRAY()
-                        ) AS labourDetails,
+                        ) AS labours,
+                                    CASE  
+                                        WHEN kde.logo IS NOT NULL THEN (
+                                            COALESCE(
+                                                (
+                                                    SELECT JSON_ARRAYAGG(
+                                                        JSON_OBJECT(
+                                                            'filename',kl.logoUrl,
+                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kl.folder_name, '/', kl.logoUrl), '')
+                                                        )
+                                                    )
+                                                    FROM kps_logos kl
+                                                    WHERE FIND_IN_SET(kl.id, kde.logo)
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                        )
+                                        ELSE JSON_ARRAY()
+                                    END AS logo,
+                                    CASE  
+                                        WHEN kde.photoFiles IS NOT NULL THEN (
+                                            COALESCE(
+                                                (
+                                                    SELECT JSON_ARRAYAGG(
+                                                        JSON_OBJECT(
+                                                            'filename', kpfd.file_url,
+                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kpfd.folder_name, '/', kpfd.file_url), '')
+                                                        )
+                                                    )
+                                                    FROM kps_photofiles_doc kpfd
+                                                    WHERE FIND_IN_SET(kpfd.id, kde.photoFiles)
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                        )
+                                        ELSE JSON_ARRAY()
+                                    END AS photoFiles,
   kps_schedules.project_name, kps_schedules.project_number,kps_schedules.owner,kps_users.username FROM kps_daily_entry AS kde LEFT JOIN kps_schedules ON kde.schedule_id = kps_schedules.id LEFT JOIN kps_users ON kps_users.id = kde.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC;`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
-        if (res.length) {
-          if (res.length) {
-            for (let row of res) {
-              row.logo = row.logo !== null ? row.logo.split(",") : []
-              row.photoFiles = row.photoFiles !== null ? row.photoFiles.split(",") : []
-            }
-          }
-        }
         resolve(res)
       }
 

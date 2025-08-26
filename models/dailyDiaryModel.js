@@ -21,18 +21,32 @@ dailyDiary.getDailyDiary = (postData) => {
         if (postData.filter && postData.filter.startDate && postData.filter.endDate) {
             whereCondition += ` AND selectedDate BETWEEN '${postData.filter.startDate}' AND '${postData.filter.endDate}' `
         }
-        let query = `SELECT kps_daily_diary.*,kps_users.username,IFNULL(DATE_FORMAT(kps_daily_diary.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kps_daily_diary.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at FROM kps_daily_diary LEFT JOIN kps_users ON kps_users.id = kps_daily_diary.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC`
+        let query = `SELECT kdd.*,ku.username,IFNULL(DATE_FORMAT(kdd.created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(kdd.updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(DATE_FORMAT(kdd.selectedDate, '%Y-%m-%d'), '') AS selectedDate ,
+                                         CASE  
+                                        WHEN kdd.logo IS NOT NULL THEN (
+                                            COALESCE(
+                                                (
+                                                    SELECT JSON_ARRAYAGG(
+                                                        JSON_OBJECT(
+                                                            'filename',kl.logoUrl,
+                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kl.folder_name, '/', kl.logoUrl), '')
+                                                        )
+                                                    )
+                                                    FROM kps_logos kl
+                                                    WHERE FIND_IN_SET(kl.id, kdd.logo)
+                                                ),
+                                                JSON_ARRAY()
+                                            )
+                                        )
+                                        ELSE JSON_ARRAY()
+                                    END AS logo
+        FROM kps_daily_diary kdd LEFT JOIN kps_users ku ON ku.id = kdd.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC`
 
         let queryValues = []
         db.query(query, queryValues, (err, res) => {
             if (err) {
                 reject(err)
             } else {
-                if (res.length) {
-                    for (let row of res) {
-                        row.logo = row.logo !== null ? row.logo.split(",") : []
-                    }
-                }
                 resolve(res)
             }
 
