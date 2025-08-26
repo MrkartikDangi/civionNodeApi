@@ -98,21 +98,6 @@ exports.getDailyDiaryAndEntryUserDetails = async (req, res) => {
   try {
     let getDailyDiary = await dailyDiary.getDailyDiary(req.body)
     let getDailyEntry = await dailyEntry.getDailyEntry(req.body)
-    if (getDailyEntry.length) {
-      for (let row of getDailyEntry) {
-        if (row.photoFiles.length) {
-          row.photoFiles = await photoFiles.getPhotoFilesData({ filter: { id: row.photoFiles.join(",") } })
-        }
-        row.equipmentsDetails = await dailyEntry.getEquipmentsDetails({ dailyEntryId: row.id })
-        row.visitorsDetails = await dailyEntry.getVisitorDetails({ dailyEntryId: row.id })
-        row.labourDetails = await dailyEntry.getLabourDetails({ dailyEntryId: row.id })
-        if (row.labourDetails.length) {
-          for (x of row.labourDetails) {
-            x.roleDetail = await dailyEntry.getLabourRoleDetails({ labour_id: x.id })
-          }
-        }
-      }
-    }
     return generic.success(req, res, {
       message: "Daily diary and Daily entry details",
       data: {
