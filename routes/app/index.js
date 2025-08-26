@@ -20,6 +20,7 @@ const scheduleController = require("../../controllers/app/schedulesController");
 const mileageController = require("../../controllers/app/mileageController");
 const notificationController = require("../../controllers/app/notificationController");
 const drawingController = require("../../controllers/app/drawingController")
+const settingController = require("../../controllers/app/settingController")
 const generic = require("../../config/genricFn/common")
 
 function ensureDirExists(dirPath) {
@@ -520,6 +521,16 @@ router.post(
   ]),
   authenticateJWT,
   weeklyEntryController.getDailyDiaryAndEntryUserDetails,
+);
+router.post(
+  "/setting/getSettingFields",
+   oneOf([
+    [
+      check("setting_key", "setting_key is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  settingController.getSettingFields,
 );
 
 module.exports = router;

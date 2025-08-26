@@ -14,6 +14,7 @@ const onedriveConfig = require("../oneDrive");
 const path = require("path");
 const expense = require("../../models/expenseModel")
 const moment = require("moment")
+const db = require("../../config/db")
 // const oneDriveApi = require("onedrive-api")
 // const pdfParse = require('pdf-parse');
 // const { PDFDocument } = require('pdf-lib');
@@ -897,6 +898,19 @@ Generic.sendExpenseMileageMail = async (postData) => {
   }
 
 }
+Generic.getSettingFields = async  (postData) => {
+  return new Promise((resolve,reject) => {
+    let query = `SELECT setting_key,setting_value FROM kps_settings WHERE setting_key = ?`
+    let queryValues = [postData.setting_key]
+    db.query(query,queryValues,(err,res) => {
+      if(err){
+        reject(err)
+      }else{
+        resolve(res)
+      }
+    })
+  })
+};
 
 
 

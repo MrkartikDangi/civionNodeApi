@@ -28,6 +28,7 @@ dailyDiary.getDailyDiary = (postData) => {
                                                 (
                                                     SELECT JSON_ARRAYAGG(
                                                         JSON_OBJECT(
+                                                            'companyName',kl.companyName,
                                                             'filename',kl.logoUrl,
                                                             'path', IFNULL(CONCAT('${process.env.Base_Url}', kl.folder_name, '/', kl.logoUrl), '')
                                                         )

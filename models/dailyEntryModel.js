@@ -91,6 +91,7 @@ dailyEntry.getDailyEntry = (postData) => {
                                                 (
                                                     SELECT JSON_ARRAYAGG(
                                                         JSON_OBJECT(
+                                                            'companyName',kl.companyName,
                                                             'filename',kl.logoUrl,
                                                             'path', IFNULL(CONCAT('${process.env.Base_Url}', kl.folder_name, '/', kl.logoUrl), '')
                                                         )
@@ -221,6 +222,7 @@ dailyEntry.createDailyEntry = (postData) => {
       logo: postData.logo ? postData.logo.join(',') : null,
       signature: postData.signature,
       pdfName: postData.pdfName,
+      declerationFrom: postData.declerationFrom ? JSON.stringify(postData.declerationFrom) : null,
       userId: postData.user.userId,
       created_by: postData.user.userId,
       created_at: postData.user.dateTime

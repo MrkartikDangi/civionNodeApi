@@ -24,6 +24,7 @@ weeklyEntry.getWeeklyEntry = (postData) => {
                                                 (
                                                     SELECT JSON_ARRAYAGG(
                                                         JSON_OBJECT(
+                                                            'companyName',kl.companyName,
                                                             'filename',kl.logoUrl,
                                                             'path', IFNULL(CONCAT('${process.env.Base_Url}', kl.folder_name, '/', kl.logoUrl), '')
                                                         )
@@ -62,7 +63,7 @@ weeklyEntry.getWeeklyEntry = (postData) => {
       } else {
         if (res.length) {
           for (let row of res) {
-              row.siteInspector = row.siteInspector !== null ? row.siteInspector.split(',') : [],
+            row.siteInspector = row.siteInspector !== null ? row.siteInspector.split(',') : [],
               row.weeklyAllList = row.weeklyAllList !== null ? JSON.parse(row.weeklyAllList) : []
           }
         }
