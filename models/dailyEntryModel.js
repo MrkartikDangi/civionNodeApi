@@ -104,24 +104,23 @@ dailyEntry.getDailyEntry = (postData) => {
                                         )
                                         ELSE JSON_ARRAY()
                                     END AS logo,
-                                    CASE  
-                                        WHEN kde.photoFiles IS NOT NULL THEN (
-                                            COALESCE(
-                                                (
-                                                    SELECT JSON_ARRAYAGG(
-                                                        JSON_OBJECT(
-                                                            'filename', kpfd.file_url,
-                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kpfd.folder_name, '/', kpfd.file_url), '')
-                                                        )
-                                                    )
-                                                    FROM kps_photofiles_doc kpfd
-                                                    WHERE FIND_IN_SET(kpfd.id, kde.photoFiles)
-                                                ),
-                                                JSON_ARRAY()
-                                            )
-                                        )
-                                        ELSE JSON_ARRAY()
-                                    END AS photoFiles,
+                                         COALESCE(
+                                                  (
+                                                      SELECT JSON_ARRAYAGG(
+                                                          JSON_OBJECT(
+                                                              'id',kpfd.id,
+                                                              'filename', kpfd.file_url,
+                                                              'comment', kdep.comment,
+                                                              'path', IFNULL(CONCAT('${process.env.Base_Url}', kpfd.folder_name, '/', kpfd.file_url), '')
+                                                          )
+                                                      )
+                                                      FROM kps_photofiles_doc kpfd
+                                                      JOIN kps_daily_entry_photofiles kdep 
+                                                      ON kpfd.id = kdep.photo_files_id
+                                                      WHERE kdep.daily_entry_id = kde.id
+                                                  ),
+                                                  JSON_ARRAY()
+                                              ) AS photoFiles,
   kps_schedules.project_name, kps_schedules.project_number,kps_schedules.owner,kps_users.username FROM kps_daily_entry AS kde LEFT JOIN kps_schedules ON kde.schedule_id = kps_schedules.id LEFT JOIN kps_users ON kps_users.id = kde.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC;`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
@@ -218,7 +217,6 @@ dailyEntry.createDailyEntry = (postData) => {
       contract_number: postData.contractNumber,
       component: postData.component,
       description: postData.description,
-      photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
       logo: postData.logo ? postData.logo.join(',') : null,
       signature: postData.signature,
       pdfName: postData.pdfName,
@@ -319,6 +317,27 @@ dailyEntry.addLaboursRoleData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_labour_roles', insertedData]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+
+  })
+}
+dailyEntry.addPhotoFilesData = (postData) => {
+  return new Promise((resolve, reject) => {
+    let insertedData = {
+      daily_entry_id: postData.dailyEntryId,
+      photo_files_id: postData.id,
+      comment: postData.comment ,
+      created_by: postData.userId,
+      created_at: postData.dateTime
+    }
+    let query = `INSERT INTO ?? SET ?`
+    let values = ['kps_daily_entry_photofiles', insertedData]
     db.query(query, values, (err, res) => {
       if (err) {
         reject(err)

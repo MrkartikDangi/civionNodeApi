@@ -37,24 +37,23 @@ weeklyEntry.getWeeklyEntry = (postData) => {
                                         )
                                         ELSE JSON_ARRAY()
                                     END AS logo,
-                                    CASE  
-                                        WHEN kwe.photoFiles IS NOT NULL THEN (
-                                            COALESCE(
-                                                (
-                                                    SELECT JSON_ARRAYAGG(
-                                                        JSON_OBJECT(
-                                                            'filename', kpfd.file_url,
-                                                            'path', IFNULL(CONCAT('${process.env.Base_Url}', kpfd.folder_name, '/', kpfd.file_url), '')
-                                                        )
-                                                    )
-                                                    FROM kps_photofiles_doc kpfd
-                                                    WHERE FIND_IN_SET(kpfd.id, kwe.photoFiles)
-                                                ),
-                                                JSON_ARRAY()
-                                            )
-                                        )
-                                        ELSE JSON_ARRAY()
-                                    END AS photoFiles               
+                                       COALESCE(
+                                                  (
+                                                      SELECT JSON_ARRAYAGG(
+                                                          JSON_OBJECT(
+                                                              'id',kpfd.id,
+                                                              'filename', kpfd.file_url,
+                                                              'comment', kwep.comment,
+                                                              'path', IFNULL(CONCAT('${process.env.Base_Url}', kpfd.folder_name, '/', kpfd.file_url), '')
+                                                          )
+                                                      )
+                                                      FROM kps_photofiles_doc kpfd
+                                                      JOIN kps_weekly_entry_photofiles kwep 
+                                                      ON kpfd.id = kwep.photo_files_id
+                                                      WHERE kwep.weekly_entry_id = kwe.id 
+                                                  ),
+                                                  JSON_ARRAY()
+                                          ) AS photoFiles              
     FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
     db.query(query, queryValues, (err, res) => {
@@ -95,7 +94,6 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       contractAdministrator: postData.contractAdministrator || null,
       supportCA: postData.supportCA || null,
       component: postData.component || null,
-      photoFiles: postData.photoFiles.length ? postData.photoFiles.join(",") : null,
       logo: postData.logo ? postData.logo.join(',') : null,
       signature: postData.signature,
       pdfName: postData.pdfName,
@@ -112,6 +110,27 @@ weeklyEntry.createWeeklyEntry = (postData) => {
         resolve(res)
       }
     })
+  })
+}
+weeklyEntry.addPhotoFilesData = (postData) => {
+  return new Promise((resolve, reject) => {
+    let insertedData = {
+      weekly_entry_id: postData.weeklyEntryId,
+      photo_files_id: postData.id,
+      comment: postData.comment ,
+      created_by: postData.userId,
+      created_at: postData.dateTime
+    }
+    let query = `INSERT INTO ?? SET ?`
+    let values = ['kps_weekly_entry_photofiles', insertedData]
+    db.query(query, values, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+
   })
 }
 module.exports = weeklyEntry

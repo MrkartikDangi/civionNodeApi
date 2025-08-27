@@ -63,6 +63,14 @@ exports.createWeeklyEntry = async (req, res) => {
     const createWeeklyEntry = await weeklyEntry.createWeeklyEntry(req.body)
     if (createWeeklyEntry.insertId) {
       let weeklyEntryId = createWeeklyEntry.insertId
+      if (req.body.photoFiles && req.body.photoFiles.length) {
+        for (let row of req.body.photoFiles) {
+          row.userId = req.body.user.userId
+          row.dateTime = req.body.user.dateTime
+          row.weeklyEntryId = weeklyEntryId
+          await weeklyEntry.addPhotoFilesData(row)
+        }
+      }
       db.commit()
       return generic.success(req, res, {
         message: "Weekly entry created successfully.",

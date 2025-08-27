@@ -74,6 +74,14 @@ exports.createDailyEntry = async (req, res) => {
           }
         }
       }
+      if (req.body.photoFiles && req.body.photoFiles.length) {
+        for (let row of req.body.photoFiles) {
+          row.userId = req.body.user.userId
+          row.dateTime = req.body.user.dateTime
+          row.dailyEntryId = dailyEntryId
+          await dailyEntry.addPhotoFilesData(row)
+        }
+      }
       db.commit()
       return generic.success(req, res, {
         message: "Daily entry successfully created",
@@ -83,7 +91,6 @@ exports.createDailyEntry = async (req, res) => {
       });
 
     } else {
-
       db.rollback()
       return generic.error(req, res, {
         message: "Failed to create daily entry",
@@ -106,6 +113,7 @@ exports.getDailyEntry = async (req, res) => {
       data: dailyEntries,
     });
   } catch (error) {
+    console.log(error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",
