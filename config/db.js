@@ -1,8 +1,9 @@
 const mysql = require('mysql');
-let connection;
+
+let connection = null;
 
 function handleDisconnect() {
-  connection = mysql.createConnection({
+  const newConnection = mysql.createConnection({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
@@ -10,34 +11,32 @@ function handleDisconnect() {
     database: process.env.DB_NAME,
     charset: process.env.DB_CHARSET,
     timezone: 'Z',
-    typeCast: function (field, next) {
-      if (field.type === 'JSON') {
-        return JSON.parse(field.string());
-      }
-      return next();
-    }
+    typeCast: (field, next) => (field.type === 'JSON' ? JSON.parse(field.string()) : next()),
   });
 
-  connection.connect(err => {
+  newConnection.connect(err => {
     if (err) {
-      console.error('Error connecting:', err.code, err.message);
+      console.error('Error connecting to DB:', err.code, err.message);
       setTimeout(handleDisconnect, 2000);
-    } else {
-      console.log('Database connection established.');
+      return;
     }
+    console.log('Database connection established. Thread ID:', newConnection.threadId);
   });
 
-  connection.on('error', err => {
+  newConnection.on('error', err => {
     console.error('DB error', err);
-    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-      console.log('Reconnecting...');
+    if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
+      console.log('DB disconnected. Reconnecting...');
       handleDisconnect();
-    } else {
-      throw err;
     }
   });
+  connection = newConnection;
 }
 
 handleDisconnect();
 
-module.exports = connection;
+module.exports = {
+  get connection() {
+    return connection;
+  },
+};

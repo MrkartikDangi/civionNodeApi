@@ -91,7 +91,7 @@ expense.getExpenseData = (postData) => {
                             END AS mileage
     FROM kps_expense LEFT JOIN kps_users ON kps_users.id = kps_expense.userId LEFT JOIN kps_schedules ON kps_schedules.id = kps_expense.schedule_id LEFT JOIN kps_expense_type ket ON ket.expense_id = kps_expense.id LEFT JOIN kps_mileage km ON km.id = kps_expense.mileageIds WHERE 1 = 1 ${whereCondition} GROUP BY kps_expense.id ORDER BY kps_expense.id DESC;`
     let queryValues = []
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -118,7 +118,7 @@ expense.getExpenseType = (postData) => {
       query = `SELECT  id,title,amount,category,status,created_by FROM kps_expense_type WHERE expense_id = ?`
       queryValues = [postData.expense_id]
     }
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -137,7 +137,7 @@ expense.getExpenseTypeImage = (postData) => {
     }
     let query = `SELECT  id,path,folder_name,created_by , IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(CONCAT('${process.env.Base_Url}',kps_expense_type_image.folder_name,'/', kps_expense_type_image.path), '') as file_url FROM kps_expense_type_image WHERE 1 = 1 ${whereCondition}`
     let queryValues = [postData.expense_type_id]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -171,7 +171,7 @@ expense.addExpense = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let queryValues = ["kps_expense", insertedData]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -193,7 +193,7 @@ expense.addExpenseType = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let queryValues = ["kps_expense_type", insertedData]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -213,7 +213,7 @@ expense.addExpenseTypeImages = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let queryValues = ["kps_expense_type_image", insertedData]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -231,7 +231,7 @@ expense.updateExpenseMileageStatus = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_expense', updatedValues, postData.expense_id]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -256,7 +256,7 @@ expense.updateExpenseItemStatus = (postData) => {
       query = `UPDATE ?? SET ? WHERE expense_id = ? AND status = ?`
       values = ['kps_expense_type', updatedValues, postData.expense_id, "Pending"]
     }
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

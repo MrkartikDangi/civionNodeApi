@@ -20,7 +20,7 @@ User.checkExistingUser = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM kps_users WHERE 1 = 1 ${whereCondition}`
     let values = []
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -41,7 +41,7 @@ User.addUserDetails = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_users', insertedValues]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -59,7 +59,7 @@ User.updateUserDetails = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ? AND email = ?`
     let values = ['kps_users', updatedValues, postData.id, postData.email]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -79,7 +79,7 @@ User.updateUserLocation = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.userId]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -99,7 +99,7 @@ User.updateCodeDetails = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.id]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -112,7 +112,7 @@ User.getUserPasswordDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM kps_users WHERE password = ?`
     let values = [postData.currentPassword]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -134,7 +134,7 @@ User.updateUserPassword = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.id]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -152,7 +152,7 @@ User.updateBossPermission = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id = ?`
     let values = ['kps_users', updatedValues, postData.user.userId]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

@@ -17,7 +17,7 @@ PhotoFiles.getPhotoFilesData = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT kps_photofiles_doc.*, IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at,IFNULL(DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s'), '') AS updated_at,IFNULL(CONCAT('${process.env.Base_Url}',folder_name,'/', file_url), '') as file_url FROM kps_photofiles_doc WHERE 1 = 1 ${whereCondition}`
     let values = []
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -39,7 +39,7 @@ PhotoFiles.addPhotoFileData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ["kps_photofiles_doc", insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -52,7 +52,7 @@ PhotoFiles.deletePhotoFiles = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `DELETE FROM kps_photofiles_doc WHERE id = ?`
     let values = [postData.id]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

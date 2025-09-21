@@ -123,7 +123,7 @@ dailyEntry.getDailyEntry = (postData) => {
                                               ) AS photoFiles,
   kps_schedules.project_name, kps_schedules.project_number,kps_schedules.owner,kps_users.username FROM kps_daily_entry AS kde LEFT JOIN kps_schedules ON kde.schedule_id = kps_schedules.id LEFT JOIN kps_users ON kps_users.id = kde.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC;`
     let queryValues = []
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -138,7 +138,7 @@ dailyEntry.getEquipmentsDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT id,equipment_name,quantity,hours,total_hours FROM kps_daily_entry_equipments WHERE daily_entry_id = ?`
     let queryValues = [postData.dailyEntryId]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -153,7 +153,7 @@ dailyEntry.getVisitorDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT id,visitor_name,company,quantity,hours,total_hours FROM kps_daily_entry_visitors WHERE daily_entry_id = ?`
     let queryValues = [postData.dailyEntryId]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -168,7 +168,7 @@ dailyEntry.getLabourDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT id,contractor_name FROM kps_daily_entry_labours WHERE daily_entry_id = ?`
     let queryValues = [postData.dailyEntryId]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -183,7 +183,7 @@ dailyEntry.getLabourRoleDetails = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT id,role_name,hours,quantity,total_hours FROM kps_daily_entry_labour_roles WHERE labour_id = ?`
     let queryValues = [postData.labour_id]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -227,7 +227,7 @@ dailyEntry.createDailyEntry = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -250,7 +250,7 @@ dailyEntry.addEquipmentsData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_equipments', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -274,7 +274,7 @@ dailyEntry.addVisitorsData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_visitors', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -294,7 +294,7 @@ dailyEntry.addLaboursData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_labours', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -317,7 +317,7 @@ dailyEntry.addLaboursRoleData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_labour_roles', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -338,7 +338,7 @@ dailyEntry.addPhotoFilesData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_daily_entry_photofiles', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

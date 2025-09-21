@@ -56,7 +56,7 @@ weeklyEntry.getWeeklyEntry = (postData) => {
                                           ) AS photoFiles              
     FROM kps_weekly_entry kwe LEFT JOIN kps_users ON kps_users.id = kwe.userId WHERE 1 = 1 ${whereCondition}`
     let queryValues = []
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -103,7 +103,7 @@ weeklyEntry.createWeeklyEntry = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let queryValues = ["kps_weekly_entry", insertedData]
-    db.query(query, queryValues, (err, res) => {
+    db.connection.query(query, queryValues, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -123,7 +123,7 @@ weeklyEntry.addPhotoFilesData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_weekly_entry_photofiles', insertedData]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

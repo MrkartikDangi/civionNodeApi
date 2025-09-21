@@ -22,7 +22,7 @@ invoice.getInvoiceData = (postData) => {
        ) AS invoiceUserDetails
        FROM kps_invoice LEFT JOIN kps_invoiceuserdetails kiud ON kiud.invoiceId = kps_invoice.id LEFT JOIN kps_schedules ON kps_schedules.id = kps_invoice.schedule_id WHERE 1 = 1 ${whereCondition} GROUP BY kps_invoice.id`
         let queryValues = []
-        db.query(query, queryValues, (err, res) => {
+        db.connection.query(query, queryValues, (err, res) => {
             if (err) {
                 reject(err)
             } else {
@@ -48,7 +48,7 @@ invoice.createInvoice = (postData) => {
         }
         let query = `INSERT INTO ?? SET ?`
         let values = ['kps_invoice', insertedData]
-        db.query(query, values, (err, res) => {
+        db.connection.query(query, values, (err, res) => {
             if (err) {
                 reject(err)
             } else {
@@ -72,7 +72,7 @@ invoice.addInvoiceUserDetails = (postData) => {
         }
         let query = `INSERT INTO ?? SET ?`
         let values = ['kps_invoiceuserdetails', insertedData]
-        db.query(query, values, (err, res) => {
+        db.connection.query(query, values, (err, res) => {
             if (err) {
                 reject(err)
             } else {
@@ -166,7 +166,7 @@ invoice.getInvoiceExcelData = (postData) => {
         ) de ON de.userId = u.id AND de.schedule_id = ks.id
         GROUP BY ks.id, ks.project_name, ks.owner, ks.project_number, ks.description, ks.rate, ks.invoice_to;`
         let queryValues = []
-        db.query(query, queryValues, (err, res) => {
+        db.connection.query(query, queryValues, (err, res) => {
             if (err) {
                 reject(err)
             } else {

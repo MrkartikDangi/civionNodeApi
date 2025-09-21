@@ -16,7 +16,7 @@ notification.getNotificationsList = (postData) => {
       values = ['1']
     }
     let query = `SELECT id,subject,message,is_read,IFNULL(DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), '') AS created_at FROM kps_notifications WHERE 1 = 1 ${whereCondition} ORDER BY id DESC`
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -38,7 +38,7 @@ notification.addNotificationData = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_notifications', insertedValues]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -55,7 +55,7 @@ notification.updateNotificationStatus = (postData) => {
     }
     let query = `UPDATE ?? SET ? WHERE id IN (${postData.id})`
     let values = ['kps_notifications', insertedValues]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

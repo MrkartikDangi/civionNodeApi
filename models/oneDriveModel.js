@@ -7,7 +7,7 @@ oneDrive.getValidOneDriveToken = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT access_token FROM kps_oneDriveToken WHERE expires_at > NOW() ORDER BY created_at DESC LIMIT 1`
     let values = []
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -26,7 +26,7 @@ oneDrive.saveOneDriveToken = (postData) => {
     }
     let query = `INSERT INTO ?? SET ?`
     let values = ['kps_oneDriveToken', insertedValues]
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {
@@ -40,7 +40,7 @@ oneDrive.deleteOneDriveExpiredToken = (postData) => {
   return new Promise((resolve, reject) => {
     let query = `DELETE FROM kps_oneDriveToken WHERE expires_at <= NOW()`
     let values = []
-    db.query(query, values, (err, res) => {
+    db.connection.query(query, values, (err, res) => {
       if (err) {
         reject(err)
       } else {

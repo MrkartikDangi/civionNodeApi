@@ -44,7 +44,7 @@ dailyDiary.getDailyDiary = (postData) => {
         FROM kps_daily_diary kdd LEFT JOIN kps_users ku ON ku.id = kdd.userId WHERE 1 = 1 ${whereCondition} ORDER BY created_at ASC`
 
         let queryValues = []
-        db.query(query, queryValues, (err, res) => {
+        db.connection.query(query, queryValues, (err, res) => {
             if (err) {
                 reject(err)
             } else {
@@ -80,7 +80,7 @@ dailyDiary.createDailyDiary = (postData) => {
         }
         let query = `INSERT INTO ?? SET ?`
         let values = ['kps_daily_diary', insertedData]
-        db.query(query, values, (err, res) => {
+        db.connection.query(query, values, (err, res) => {
             if (err) {
                 reject(err)
             } else {
@@ -112,7 +112,7 @@ dailyDiary.updateDailyDiary = (postData) => {
         }
         let query = `UPDATE ?? SET ? WHERE id = ?`
         let values = ['kps_daily_diary', updatedValues, postData.id]
-        db.query(query, values, (err, res) => {
+        db.connection.query(query, values, (err, res) => {
             if (err) {
                 reject(err)
             } else {
