@@ -37,7 +37,7 @@ exports.createInvoice = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
     if (!getScheduleData.length) {
       return generic.validationError(req, res, { message: "schedule does'nt exists" });
@@ -52,7 +52,7 @@ exports.createInvoice = async (req, res) => {
           await Invoice.addInvoiceUserDetails(row)
         }
       }
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Invoice created successfully.",
         data: {
@@ -60,7 +60,7 @@ exports.createInvoice = async (req, res) => {
         },
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to create invoie.",
       });
@@ -68,7 +68,7 @@ exports.createInvoice = async (req, res) => {
 
   } catch (error) {
     console.log('error', error)
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

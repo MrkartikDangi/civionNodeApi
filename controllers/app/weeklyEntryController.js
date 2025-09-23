@@ -51,7 +51,7 @@ exports.createWeeklyEntry = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const getScheduleData = await schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
     if (!getScheduleData) {
       return generic.error(req, res, { message: "Invalid schedule ID, schedule not found" });
@@ -71,7 +71,7 @@ exports.createWeeklyEntry = async (req, res) => {
           await weeklyEntry.addPhotoFilesData(row)
         }
       }
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Weekly entry created successfully.",
         data: {
@@ -79,14 +79,14 @@ exports.createWeeklyEntry = async (req, res) => {
         },
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to add weekly entry",
       });
 
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

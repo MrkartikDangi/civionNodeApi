@@ -105,10 +105,8 @@ exports.createPhotoFiles = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     if (req.body.imageurl && req.body.imageurl.length) {
-      // await generic.initializeOneDrive()
-      // let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
       for (let row of req.body.imageurl) {
         row.schedule_id = req.body.schedule_id
         row.userId = req.body.user.userId
@@ -116,16 +114,13 @@ exports.createPhotoFiles = async (req, res) => {
         row.fileName = path.basename(row.path);
         row.folder_name = path.dirname(row.path);
         await PhotoFiles.addPhotoFileData(row)
-        // let filePath = `${process.env.Base_Url}${row.folder_name}/${row.fileName}`
-        // let subFolder = `${getScheduleData[0]?.project_name}/${row.folder_name}`
-        // await generic.uploadFileToOneDrive(filePath, row.fileName, row.folder_name,subFolder)
       }
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Photos Added Successfully.",
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: `Provide image for uploadation`
       });
@@ -133,7 +128,7 @@ exports.createPhotoFiles = async (req, res) => {
     }
   } catch (error) {
     console.log('error',error)
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -150,12 +145,12 @@ exports.deletePhotoFiles = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     if (req.body.photoFileId && req.body.photoFileId.length) {
       for (let row of req.body.photoFileId) {
         const checkImageExists = await PhotoFiles.getPhotoFilesData({ filter: { id: row } });
         if (!checkImageExists.length) {
-          db.rollback()
+          db.connection.rollback()
           return generic.error(req, res, {
             message: "Image doesn't exist",
             details: checkImageExists,
@@ -169,13 +164,13 @@ exports.deletePhotoFiles = async (req, res) => {
         }
 
       }
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Image successfully deleted",
       });
 
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Provide image details for deletation",
       });
@@ -183,7 +178,7 @@ exports.deletePhotoFiles = async (req, res) => {
     }
 
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"

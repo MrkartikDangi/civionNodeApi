@@ -29,7 +29,7 @@ exports.createJobHazard = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const addJobHazardData = await JobHazard.addJobHazardData(req.body)
     if (addJobHazardData.insertId) {
       if (req.body.selectedActivities && req.body.selectedActivities.length) {
@@ -48,7 +48,7 @@ exports.createJobHazard = async (req, res) => {
           await JobHazard.addTaskData(row)
         }
       }
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Job Hazard data submitted successfully.",
         data: {
@@ -57,7 +57,7 @@ exports.createJobHazard = async (req, res) => {
       });
 
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Job Hazard data submitted successfully.",
       });
@@ -65,7 +65,7 @@ exports.createJobHazard = async (req, res) => {
     }
 
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong.",

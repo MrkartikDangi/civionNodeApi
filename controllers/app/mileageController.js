@@ -14,7 +14,7 @@ exports.addUserMileage = async (req, res) => {
         });
     }
     try {
-        db.beginTransaction()
+        db.connection.beginTransaction()
         const user = await User.checkExistingUser({ userId: req.body.user.userId });
         if (!user.length) {
             return generic.error(req, res, { message: "User not found" });
@@ -29,7 +29,7 @@ exports.addUserMileage = async (req, res) => {
                     await mileage.addUserMileageCoordinates(row)
                 }
             }
-            db.commit()
+            db.connection.commit()
             return generic.success(req, res, {
                 message: "User mileage successfully added.",
                 data: {
@@ -38,7 +38,7 @@ exports.addUserMileage = async (req, res) => {
             });
 
         } else {
-            db.rollback()
+            db.connection.rollback()
             return generic.error(req, res, {
                 message: "Failed to add user mileage",
             });
@@ -46,7 +46,7 @@ exports.addUserMileage = async (req, res) => {
         }
     } catch (error) {
         console.log('error', error)
-        db.rollback()
+        db.connection.rollback()
         return generic.error(req, res, {
             status: 500,
             message: "something went wrong!",

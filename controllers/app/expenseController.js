@@ -11,7 +11,7 @@ const moment = require("moment")
 
 exports.addExpense = async (req, res) => {
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     let mileageUser = []
     let mileage_ids = req.body.mileageIds.length ? req.body.mileageIds.join(',') : ''
     if (mileage_ids == "") {
@@ -19,7 +19,7 @@ exports.addExpense = async (req, res) => {
     } else {
       mileageUser = await mileage.getUserMileage({ filter: { userId: req.body.user.userId, mileage_ids: mileage_ids, type: 'expense' } });
       if (!mileageUser.length) {
-        db.rollback()
+        db.connection.rollback()
         return generic.error(req, res, {
           message: "This mileage has already been included in your submitted expense.",
         });
@@ -65,7 +65,7 @@ exports.addExpense = async (req, res) => {
         dateTime: req.body.user.dateTime
       }
       await notification.addNotificationData(notificationData)
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Expense successfully created",
         data: {
@@ -73,7 +73,7 @@ exports.addExpense = async (req, res) => {
         },
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.success(req, res, {
         message: "Failed to create expense",
       });
@@ -82,7 +82,7 @@ exports.addExpense = async (req, res) => {
 
   } catch (error) {
     console.log('err', error)
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",
@@ -151,7 +151,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const data = {
       expense_id: req.body.expense_id,
       userId: req.body.user.userId,
@@ -210,19 +210,19 @@ exports.updateExpenseItemStatus = async (req, res) => {
     if (data.status == 'Approved') {
       let result = await generic.sendExpenseMileageMail({ expense_id: req.body.expense_id, type: req.body.type, item_id: itemIds.length ? itemIds.join(',') : "", mileage_id: mileageIds.length ? mileageIds.join(',') : "" })
       if (result) {
-        db.commit()
+        db.connection.commit()
         return generic.success(req, res, {
           message: result.message,
         });
 
       } else {
-        db.rollback()
+        db.connection.rollback()
         return generic.error(req, res, {
           message: result.message,
         });
       }
     } else {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: `User ${req.body.type} ${req.body.status}`,
       });
@@ -230,7 +230,7 @@ exports.updateExpenseItemStatus = async (req, res) => {
 
   } catch (error) {
     console.log('error', error)
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

@@ -34,21 +34,21 @@ exports.createDailyDiary = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
     if (!getScheduleData.length) {
       return generic.validationError(req, res, { message: "schedule does'nt exists" });
     }
     const existingDailyEntry = await dailyEntry.getDailyEntry({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } })
     if (existingDailyEntry.length) {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: `You have already submitted a daily entry for this project on this date ${moment(req.body.selectedDate).format("DD-MMM-YYYY")}.`,
       });
     }
     let existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
     if (existingDailyDiary.length) {
-      db.rollback()
+      db.connection.rollback()
       return res.status(400).json({
         message: `You have already submitted a daily diary for this project on this date ${moment(req.body.selectedDate).format("DD-MMM-YYYY")}.`,
 
@@ -57,7 +57,7 @@ exports.createDailyDiary = async (req, res) => {
     }
     const newDailyDiary = await dailyDiary.createDailyDiary(req.body);
     if (newDailyDiary.insertId) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Daily Diary created successfully.",
         data: {
@@ -66,13 +66,13 @@ exports.createDailyDiary = async (req, res) => {
       });
 
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to create daily diary",
       });
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

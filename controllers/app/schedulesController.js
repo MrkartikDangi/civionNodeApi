@@ -35,12 +35,12 @@ exports.addScheduleData = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     req.body.path = path.basename(req.body.pdfUrl);
     req.body.folder_name = path.dirname(req.body.pdfUrl);
     const addSchedule = await Schedule.addScheduleData(req.body)
     if (addSchedule.insertId) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Schedule Data Added successfully",
         data: {
@@ -48,13 +48,13 @@ exports.addScheduleData = async (req, res) => {
         }
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to add schedule data",
       });
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -71,10 +71,10 @@ exports.updateScheduleData = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.id } })
     if (!getScheduleData.length) {
-      db.rollback()
+      db.connection.rollback()
       return generic.success(req, res, {
         message: "schedule details not found"
       });
@@ -86,19 +86,19 @@ exports.updateScheduleData = async (req, res) => {
     req.body.folder_name = path.dirname(req.body.pdfUrl);
     const updateScheduleData = await Schedule.updateScheduleData(req.body)
     if (updateScheduleData.affectedRows) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Schedule data updated successfully",
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to update schedule data",
       });
     }
 
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -115,10 +115,10 @@ exports.deleteScheduleData = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.id } })
     if (!getScheduleData.length) {
-      db.rollback()
+      db.connection.rollback()
       return generic.success(req, res, {
         message: "schedule details not found"
       });
@@ -127,12 +127,12 @@ exports.deleteScheduleData = async (req, res) => {
     if (deleteScheduleData.affectedRows) {
       let url = `${process.env.Base_Url}/${getScheduleData[0]?.folder_name}/${getScheduleData[0]?.pdfUrl}`
       await generic.deleteAttachmentFromS3(url)
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Schedule data deleted successfully"
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.success(req, res, {
         message: "Failed to delete schedule data"
       });
@@ -141,7 +141,7 @@ exports.deleteScheduleData = async (req, res) => {
 
   } catch (error) {
     console.log('errro',error)
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"

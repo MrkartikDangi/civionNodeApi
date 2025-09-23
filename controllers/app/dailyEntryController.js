@@ -17,7 +17,7 @@ exports.createDailyEntry = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
     if (!getScheduleData.length) {
       return generic.validationError(req, res, { message: "schedule does'nt exists" });
@@ -26,14 +26,14 @@ exports.createDailyEntry = async (req, res) => {
     const existingDailyDiary = await dailyDiary.getDailyDiary({ filter: { userId: req.body.user.userId, schedule_id: req.body.schedule_id, selectedDate: req.body.selectedDate } });
 
     if (existingDailyEntry.length) {
-      db.rollback()
+      db.connection.rollback()
       return res.status(400).json({
         message:
           "You have already submitted a daily entry for this project on this date.",
       });
     }
     if (existingDailyDiary.length) {
-      db.rollback()
+      db.connection.rollback()
       return res.status(400).json({
         message:
           "You have already submitted a daily diary for this project on this date.",
@@ -82,7 +82,7 @@ exports.createDailyEntry = async (req, res) => {
           await dailyEntry.addPhotoFilesData(row)
         }
       }
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Daily entry successfully created",
         data: {
@@ -91,14 +91,14 @@ exports.createDailyEntry = async (req, res) => {
       });
 
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to create daily entry",
       });
     }
 
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

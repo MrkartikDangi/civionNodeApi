@@ -18,7 +18,7 @@ exports.registerUser = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     req.body.email = req.body.email.toLowerCase()
     const regex = /^[a-zA-Z0-9._%+-]+@kps\.ca$/;
     const isValidEmail = regex.test(req.body.email);
@@ -31,7 +31,7 @@ exports.registerUser = async (req, res) => {
     req.body.password = await generic.encodeToBase64(req.body.password)
     if (existingUser.length) {
       if (existingUser[0]?.username !== null && existingUser[0]?.password !== null) {
-        db.rollback()
+        db.connection.rollback()
         return generic.success(req, res, {
           message: `${req.body.username} is already registered`,
         });
@@ -40,7 +40,7 @@ exports.registerUser = async (req, res) => {
       req.body.dateTime = req.header("dateTime") ? moment.utc(req.header("dateTime")).format('YYYY-MM-DD HH:mm:ss') : moment.utc(new Date()).format('YYYY-MM-DD HH:mm:ss')
       const updateUserDetails = await User.updateUserDetails(req.body)
       if (updateUserDetails.affectedRows) {
-        db.commit()
+        db.connection.commit()
         return generic.success(req, res, {
           message: `${req.body.username} registered successfully`,
           data: {
@@ -49,20 +49,20 @@ exports.registerUser = async (req, res) => {
         });
 
       } else {
-        db.rollback()
+        db.connection.rollback()
         return generic.error(req, res, {
           message: `${req.body.username}'s registeration failed`
         });
       }
 
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: `${req.body.email} :- this company email is not registered kindly contact to support team`,
       });
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -80,25 +80,25 @@ exports.updateLocation = async (req, res) => {
   }
 
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const checkExistingUser = await User.checkExistingUser(req.body);
     if (!checkExistingUser.length) {
       return generic.error(req, res, { message: `User not found` });
     }
     const updateUserLocation = await User.updateUserLocation(req.body)
     if (updateUserLocation.affectedRows) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "User location updated successfully",
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "failed to update user location"
       });
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -178,7 +178,7 @@ exports.forgotPassword = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     req.body.email = req.body.email.toLowerCase()
     const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (!user) {
@@ -212,19 +212,19 @@ exports.forgotPassword = async (req, res) => {
       };
       let result = await generic.sendEmails(data);
       if (result) {
-        db.commit()
+        db.connection.commit()
         return generic.success(req, res, {
           message: "Verification code sent to email",
         });
       } else {
-        db.rollback()
+        db.connection.rollback()
         return generic.error(req, res, {
           message: "failed to send forgot password code mail",
           error: result,
         });
       }
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "failed to update user code details",
       });
@@ -286,7 +286,7 @@ exports.resetPassword = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     req.body.email = req.body.email.toLowerCase()
     const user = await User.checkExistingUser({ filter: { email: req.body.email } });
     if (!user.length) {
@@ -307,12 +307,12 @@ exports.resetPassword = async (req, res) => {
     }
     let updateUserPassword = await User.updateUserPassword(data)
     if (updateUserPassword.affectedRows) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Password reset successfully ",
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "failed to reset user password",
       });
@@ -320,7 +320,7 @@ exports.resetPassword = async (req, res) => {
     }
 
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -361,9 +361,9 @@ exports.changePassword = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     if (req.body.currentPassword == req.body.newPassword) {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "New password must be different from the previous one",
       });
@@ -381,13 +381,13 @@ exports.changePassword = async (req, res) => {
         }
         let updateUserPassword = await User.updateUserPassword(data)
         if (updateUserPassword.affectedRows) {
-          db.commit()
+          db.connection.commit()
           return generic.success(req, res, {
             message: "Password updated successfully",
           });
 
         } else {
-          db.rollback()
+          db.connection.rollback()
           return generic.error(req, res, {
             message: "Failed to update user password",
           });
@@ -395,21 +395,21 @@ exports.changePassword = async (req, res) => {
         }
 
       } else {
-        db.rollback()
+        db.connection.rollback()
         return generic.error(req, res, {
           message: "Current password does'nt match with the previous password",
         });
 
       }
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Your password is incorrect",
       });
 
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -426,7 +426,7 @@ exports.addUserDetails = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     req.body.email = req.body.email.toLowerCase()
     const regex = /^[a-zA-Z0-9._%+-]+@kps\.ca$/;
     const isValidEmail = regex.test(req.body.email);
@@ -441,7 +441,7 @@ exports.addUserDetails = async (req, res) => {
     }
     let addUserDetails = await User.addUserDetails(req.body)
     if (addUserDetails.insertId) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: `Email ${req.body.email} added successfully`,
         data: {
@@ -449,13 +449,13 @@ exports.addUserDetails = async (req, res) => {
         },
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: `Failed to add ${req.body.email}`
       });
     }
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
@@ -472,22 +472,22 @@ exports.updateBossPermission = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     const updateBossPermission = await User.updateBossPermission(req.body);
     if (updateBossPermission.affectedRows) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Boss permission updated successfully",
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to update boss permission",
       });
     }
   } catch (error) {
     console.log('error', error)
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

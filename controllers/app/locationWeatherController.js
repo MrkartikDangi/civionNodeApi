@@ -14,7 +14,7 @@ exports.getLocationWeather = async (req, res) => {
     });
   }
   try {
-    db.beginTransaction()
+    db.connection.beginTransaction()
     let existingUser = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
     if (!existingUser.length) {
       return generic.error(req, res, {
@@ -42,7 +42,7 @@ exports.getLocationWeather = async (req, res) => {
     data.dateTime = req.body.user.dateTime
     let updateUserLatLong = await User.updateUserLocation(data)
     if (updateUserLatLong.affectedRows) {
-      db.commit()
+      db.connection.commit()
       return generic.success(req, res, {
         message: "Weather Information",
         data: {
@@ -58,14 +58,14 @@ exports.getLocationWeather = async (req, res) => {
         }
       });
     } else {
-      db.rollback()
+      db.connection.rollback()
       return generic.error(req, res, {
         message: "Failed to fetch and update user location",
       });
     }
 
   } catch (error) {
-    db.rollback()
+    db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
       message: `Something went wrong!`,
