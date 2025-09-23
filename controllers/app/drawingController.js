@@ -2,8 +2,8 @@ const generic = require("../../config/genricFn/common");
 const { validationResult, matchedData } = require("express-validator");
 const drawing = require("../../models/drawingModel")
 const fs = require('fs');
-const pdfParse = require('pdf-parse');
-const { PDFDocument } = require('pdf-lib');
+// const pdfParse = require('pdf-parse');
+// const { PDFDocument } = require('pdf-lib');
 const path = require("path")
 
 
