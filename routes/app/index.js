@@ -21,6 +21,7 @@ const mileageController = require("../../controllers/app/mileageController");
 const notificationController = require("../../controllers/app/notificationController");
 const drawingController = require("../../controllers/app/drawingController")
 const settingController = require("../../controllers/app/settingController")
+const oneDriveController = require("../../controllers/app/oneDriveController")
 const generic = require("../../config/genricFn/common")
 
 function ensureDirExists(dirPath) {
@@ -65,10 +66,10 @@ const upload = multer({
 });
 
 // function to initialize onedrive 
-(callOneDrive = async () => {
-  await generic.initializeOneDrive();
-})
-callOneDrive()
+// (callOneDrive = async () => {
+//   await generic.initializeOneDrive();
+// })
+// callOneDrive()
 
 router.post(
   "/auth/register",
@@ -531,6 +532,18 @@ router.post(
   ]),
   authenticateJWT,
   settingController.getSettingFields,
+);
+router.post(
+  "/oneDrive/uploadToOneDrive",
+  upload.fields([{ name: "file" }]),
+  oneOf([
+    [
+      check("type", "type is required").notEmpty(),
+      check("schedule_id", "Schedule Id is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  oneDriveController.uploadToOneDrive,
 );
 
 module.exports = router;

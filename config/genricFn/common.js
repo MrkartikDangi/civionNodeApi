@@ -7,8 +7,8 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 const axios = require("axios");
 const multer = require("multer");
-const { Client } = require('@microsoft/microsoft-graph-client');
-require('isomorphic-fetch');
+// const { Client } = require('@microsoft/microsoft-graph-client');
+// require('isomorphic-fetch');
 const oneDrive = require("../../models/oneDriveModel")
 const onedriveConfig = require("../oneDrive");
 const path = require("path");
@@ -493,80 +493,131 @@ Generic.jwtVerify = (token, key) => {
 
   }
 }
-Generic.getMimeType = async (fileName) => {
+Generic.getMimeType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
-  console.log('extension', extension)
   const mimeTypes = {
     pdf: 'application/pdf',
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
     png: 'image/png',
-    gif: 'image/gif'
+    gif: 'image/gif',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    csv: 'text/csv',
+    xlsm: 'application/vnd.ms-excel.sheet.macroEnabled.12',
+    xlsb: 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
   };
   return mimeTypes[extension] || 'application/octet-stream';
-}
-Generic.uploadFileToOneDrive = async (filePath, fileName, folderPath = '', subFolder = '') => {
+};
+
+Generic.uploadFileToOneDrive = async (postData) => {
   try {
     const getAccessToken = await oneDrive.getValidOneDriveToken();
-    const client = Client.init({
-      authProvider: (done) => done(null, getAccessToken[0]?.access_token)
+    const accessToken = getAccessToken[0]?.access_token;
+
+    if (!accessToken) throw new Error("Unable to fetch access token");
+    const getDriveId = await axios.get("https://graph.microsoft.com/v1.0/drives", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
     });
 
-    // const test = await axios.get("https://graph.microsoft.com/v1.0/me/drive", {
-    //   headers: {
-    //     Authorization: `Bearer ${getAccessToken[0]?.access_token}`
+    const driveId = getDriveId?.data?.value[0]?.id;
+    if (!driveId) throw new Error("Unable to fetch drive ID");
+    const folders = postData.folderPath.split("/").filter(Boolean).map(folder => folder.replace(/\s+/g, "_"));
+    let currentPath = "";
+    // for (const folder of folders) {
+    //   currentPath = currentPath ? `${currentPath}/${folder}` : folder;
+
+    //   try {
+    //     await axios.get(
+    //       `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${currentPath}:`,
+    //       { headers: { Authorization: `Bearer ${accessToken}` } }
+    //     );
+    //   } catch (err) {
+    //     if (err.response?.status === 404) {
+    //       const parentPath =
+    //         currentPath.lastIndexOf("/") > -1
+    //           ? currentPath.substring(0, currentPath.lastIndexOf("/"))
+    //           : "";
+
+    //       const createUrl = parentPath
+    //         ? `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${parentPath}:/children`
+    //         : `https://graph.microsoft.com/v1.0/drives/${driveId}/root/children`;
+
+    //       await axios.post(
+    //         createUrl,
+    //         {
+    //           name: folder,
+    //           folder: {},
+    //           "@microsoft.graph.conflictBehavior": "rename",
+    //         },
+    //         {
+    //           headers: {
+    //             Authorization: `Bearer ${accessToken}`,
+    //             "Content-Type": "application/json",
+    //           },
+    //         }
+    //       );
+    //       console.log(`📁 Created folder: ${currentPath}`);
+    //     } else {
+    //       throw err;
+    //     }
     //   }
-    // });
-    // console.log('test',test.data.name)
-
-    const fileContent = await axios.get(filePath, { responseType: 'arraybuffer' });
-    // const rootItem = await oneDriveApi.items.getMetadata({
-    //   accessToken: getAccessToken[0]?.access_token,
-    //   itemId: '/root'
-    // });
-    // console.log('root', rootItem)
-    // const children = await oneDriveApi.items.listChildren({
-    //   accessToken: getAccessToken[0]?.access_token,
-    //   itemId: 'root'
-    // });
-    // console.log('items.listChildren', children);
-    // return
-
-    const mimeType = Generic.getMimeType(fileName);
-    const uploadPath = folderPath ? `/${folderPath}/${subFolder}/${fileName}` : `/${fileName}`;
-    // console.log('uploadPath', uploadPath)
-    // // console.log('onedrive', onedriveConfig)
-
-    const response = await client
-      .api(`/users/a4077f28-4a0e-46cc-b750-89fe519872c2
-/drive/root:/${uploadPath}`)
-      .header('Content-Type', mimeType)
-      .put(fileContent.data);
-    console.log('response', response)
-    // let a = {
-    //   accessToken: getAccessToken[0]?.access_token,
-    //   filename: fileName,
-    //   readableStream: fileContent.data,
-    //   parentPath: uploadPath // Nested folder path in OneDrive
     // }
-    // console.log('a', a)
-    // let response = await oneDriveApi.items.uploadSimple({
-    //   accessToken: getAccessToken[0]?.access_token,
-    //   filename: fileName,
-    //   readableStream: fileContent.data,
-    //   parentPath: uploadPath // Nested folder path in OneDrive
-    // });
-    // console.log('response', response)
+    for (const folder of folders) {
+      currentPath = currentPath ? `${currentPath}/${folder}` : folder;
 
-    // return {
-    //   success: true,
-    //   webUrl: response.webUrl,
-    //   id: response.id,
-    //   name: response.name
-    // };
+      const folderUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${currentPath}:`;
+      try {
+        await axios.get(folderUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
+      } catch (err) {
+        if (err.response?.status === 404) {
+          const parentPath = currentPath.includes("/") ? currentPath.split("/").slice(0, -1).join("/") : "";
+          const createUrl = parentPath
+            ? `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${parentPath}:/children`
+            : `https://graph.microsoft.com/v1.0/drives/${driveId}/root/children`;
+
+          // Folder creation does not block others
+          await axios.post(
+            createUrl,
+            { name: folder, folder: {}, "@microsoft.graph.conflictBehavior": "rename" },
+            { headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" } }
+          );
+        } else throw err;
+      }
+    }
+    const mimeType = Generic.getMimeType(postData.fileName);
+    let fileResponse
+    if (postData.fetchType && postData.fetchType == 'local') {
+      fileResponse = { data: fs.createReadStream(postData.filePath) };
+    } else if (postData.fetchType && postData.fetchType == 'buffer') {
+      fileResponse = postData.filePath;
+    } else {
+      fileResponse = await axios.get(postData.filePath, { responseType: "stream" });
+    }
+    const uploadPath = `${currentPath}/${postData.fileName}`;
+    const uploadResponse = await axios.put(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${uploadPath}:/content`,
+      fileResponse.data,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": mimeType,
+        },
+      }
+    );
+    return {
+      success: true,
+      webUrl: uploadResponse.data?.webUrl,
+      id: uploadResponse.data?.id,
+      name: uploadResponse.data?.name,
+    };
+
   } catch (error) {
-    console.error('OneDriveModel Error:', error);
-    throw error;
+    console.error("OneDrive upload failed:", error.response?.data || error.message);
+    return { success: false, error: error.message };
   }
 }
 Generic.initializeOneDrive = async () => {
@@ -590,7 +641,7 @@ Generic.initializeOneDrive = async () => {
 
     }
   } catch (error) {
-    throw new Error('Failed to initialize one drive');
+    console.log('Failed to initialize one drive', error)
   }
 }
 Generic.getAccessToken = async () => {
@@ -898,14 +949,14 @@ Generic.sendExpenseMileageMail = async (postData) => {
   }
 
 }
-Generic.getSettingFields = async  (postData) => {
-  return new Promise((resolve,reject) => {
+Generic.getSettingFields = async (postData) => {
+  return new Promise((resolve, reject) => {
     let query = `SELECT setting_key,setting_value FROM kps_settings WHERE setting_key = ?`
     let queryValues = [postData.setting_key]
-    db.query(query,queryValues,(err,res) => {
-      if(err){
+    db.connection.query(query, queryValues, (err, res) => {
+      if (err) {
         reject(err)
-      }else{
+      } else {
         resolve(res)
       }
     })
