@@ -107,6 +107,8 @@ exports.createPhotoFiles = async (req, res) => {
   try {
     db.connection.beginTransaction()
     if (req.body.imageurl && req.body.imageurl.length) {
+      await generic.initializeOneDrive()
+      let getScheduleData = await Schedule.getScheduleData({ filter: { schedule_id: req.body.schedule_id } })
       for (let row of req.body.imageurl) {
         row.schedule_id = req.body.schedule_id
         row.userId = req.body.user.userId
@@ -114,10 +116,16 @@ exports.createPhotoFiles = async (req, res) => {
         row.fileName = path.basename(row.path);
         row.folder_name = path.dirname(row.path);
         await PhotoFiles.addPhotoFileData(row)
+        let data = {
+          filePath: `${process.env.Base_Url}${row.folder_name}/${row.fileName}`,
+          fileName: row.fileName,
+          folderPath: `civion/${getScheduleData[0]?.project_name ?? 'DefaultProject'}/${row.folder_name}`
+        }
+        await generic.uploadFileToOneDrive(data)
       }
       db.connection.commit()
       return generic.success(req, res, {
-        message: "Photos Added Successfully.",
+        message: "Photos Added Successfully."
       });
     } else {
       db.connection.rollback()
@@ -127,7 +135,7 @@ exports.createPhotoFiles = async (req, res) => {
 
     }
   } catch (error) {
-    console.log('error',error)
+    console.log('error', error)
     db.connection.rollback()
     return generic.error(req, res, {
       status: 500,
