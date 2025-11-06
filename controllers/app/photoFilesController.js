@@ -119,7 +119,7 @@ exports.createPhotoFiles = async (req, res) => {
         let data = {
           filePath: `${process.env.Base_Url}${row.folder_name}/${row.fileName}`,
           fileName: row.fileName,
-          folderPath: `civion/${getScheduleData[0]?.project_name ?? 'DefaultProject'}/${row.folder_name}`
+          folderPath: `civion/${getScheduleData[0]?.project_name ?? 'DefaultProject'}/photoFiles`
         }
         await generic.uploadFileToOneDrive(data)
       }
