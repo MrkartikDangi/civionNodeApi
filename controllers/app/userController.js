@@ -204,9 +204,9 @@ exports.forgotPassword = async (req, res) => {
       const emailTemplate = handlebars.compile(emailTemplateSource);
       const emailHTML = emailTemplate({code:code});
       let data = {
-        to: 'aasthasharma30.97@gmail.com',
-        cc: 'kanhaiyalalverma686@gmail.com',
-        bcc: 'Faizahmadofficial293@gmail.com',
+        to: user?.[0]?.email,
+        cc: '',
+        bcc: '',
         subject: `Password Reset Verification Code`,
         html: emailHTML,
       };
@@ -230,7 +230,6 @@ exports.forgotPassword = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('error',error)
     return generic.error(req, res, {
       status: 500,
       message: "Something went wrong !"
