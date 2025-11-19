@@ -265,9 +265,9 @@ exports.generateInvoiceExcel = async (req, res) => {
 
         const buffer = await workbook.xlsx.writeBuffer();
         let Maildata = {
-          to: "aasthasharma30.97@gmail.com",
-          cc: "Faizahmadofficial293@gmail.com",
-          bcc: "kanhaiyalalverma686@gmail.com",
+          to: "Aastha.sharma@kps.ca",
+          cc: "rajat.kalia@kps.ca",
+          bcc: "",
           subject: `Invoice Report`,
           html: invoiceReportTemplate(dates),
           attachments: [
@@ -282,6 +282,14 @@ exports.generateInvoiceExcel = async (req, res) => {
 
         let result = await generic.sendEmails(Maildata);
         if (result) {
+          // await generic.initializeOneDrive()
+          // let data = {
+          //   filePath: req.files?.file[0]?.path,
+          //   fileName: `Kps_Invoice_${moment(req.body.startDate).format("DD-MMM-YYYY")} to ${moment(req.body.endDate).format("DD-MMM-YYYY")}.xlsx`,
+          //   folderPath: `civion/Invoice`,
+          //   fetchType: 'buffer'
+          // }
+          // await generic.uploadFileToOneDrive(data)
           return generic.success(req, res, {
             status: 200,
             message: `The invoice report has been successfully generated and sent via email`,

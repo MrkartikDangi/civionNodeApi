@@ -882,24 +882,6 @@ Generic.sendExpenseMileageMail = async (postData) => {
         emailData.images = getExpenseTypeImages.length ? getExpenseTypeImages.map((x) => ({ path: x.file_url })) : []
       }
     }
-    // if (postData.type == 'expense' && postData.item_id == "") {
-    //   emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
-    //   emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.expenseAmount.toFixed(2) : 0
-    //   emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
-    //   emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
-    //   getExpenseType = await expense.getExpenseType({ expense_id: postData.expense_id })
-    //   if (getExpenseType.length) {
-    //     for (let row of getExpenseType) {
-    //       getExpenseTypeImages = await expense.getExpenseTypeImage({ expense_type_id: row.id })
-    //       images = getExpenseTypeImages.map(item => ({
-    //         path: item.file_url
-    //       }))
-
-    //     }
-    //   }
-    //   emailData.images = images
-
-    // }
     if (postData.type == 'mileage' && postData.mileage_id !== "") {
       getMileageDetails = await mileage.getUserMileage({ filter: { mileage_ids: postData.mileage_id, status: 'Approved' } })
       if (getMileageDetails.length) {
@@ -911,23 +893,14 @@ Generic.sendExpenseMileageMail = async (postData) => {
       }
 
     }
-
-    // if (postData.type == 'mileage' && postData.mileage_id == "") {
-    //   emailData.employeeName = getExpenseDetails.length ? getExpenseDetails[0]?.username : ''
-    //   emailData.totalApprovedAmount = getExpenseDetails.length ? getExpenseDetails[0]?.mileageAmount.toFixed(2) : 0
-    //   emailData.startDate = getExpenseDetails.length ? getExpenseDetails[0]?.startDate.toLocaleDateString("en-US") : ''
-    //   emailData.endDate = getExpenseDetails.length ? getExpenseDetails[0]?.endDate.toLocaleDateString("en-US") : ''
-    //   emailData.images = images
-    // }
-
     const emailHTML = emailTemplate(emailData);
 
     let result = await Generic.sendApprovalEmail(
-      "aasthasharma30.97@gmail.com",
+      "Aastha.sharma@kps.ca",
       `${type} Report Approved`,
       emailHTML,
-      "kanhaiyalalverma686@gmail.com",
-      "Faizahmadofficial293@gmail.com"
+      "rajat.kalia@kps.ca",
+      ""
     );
     if (result) {
       return {
