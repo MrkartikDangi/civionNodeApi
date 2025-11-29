@@ -265,8 +265,8 @@ exports.generateInvoiceExcel = async (req, res) => {
 
         const buffer = await workbook.xlsx.writeBuffer();
         let Maildata = {
-          to: "Aastha.sharma@kps.ca",
-          cc: "rajat.kalia@kps.ca",
+          to: "paul.kusiar@kps.ca , rajat.kalia@kps.ca",
+          cc: "",
           bcc: "",
           subject: `Invoice Report`,
           html: invoiceReportTemplate(dates),

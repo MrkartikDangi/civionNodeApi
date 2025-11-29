@@ -896,10 +896,10 @@ Generic.sendExpenseMileageMail = async (postData) => {
     const emailHTML = emailTemplate(emailData);
 
     let result = await Generic.sendApprovalEmail(
-      "Aastha.sharma@kps.ca",
+      "eva@tabworks.ca",
       `${type} Report Approved`,
       emailHTML,
-      "rajat.kalia@kps.ca",
+      "paul.kusiar@kps.ca , rajat.kalia@kps.ca",
       ""
     );
     if (result) {
