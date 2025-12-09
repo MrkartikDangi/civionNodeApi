@@ -15,6 +15,7 @@ const path = require("path");
 const expense = require("../../models/expenseModel")
 const moment = require("moment")
 const db = require("../../config/db")
+const apiLogs = require("../../models/logsModel")
 // const oneDriveApi = require("onedrive-api")
 // const pdfParse = require('pdf-parse');
 // const { PDFDocument } = require('pdf-lib');
@@ -158,7 +159,14 @@ Generic.uploadAttachment = async (postData) => {
 //   return { status: true, project, user, weeklyData };
 // };
 
-Generic.success = async (_, res, successObject) => {
+Generic.success = async (req, res, successObject) => {
+  if (req.body.user && req.body.user.log_id) {
+    let logData = {
+      id: req.body.user.log_id,
+      response_payload: JSON.stringify(successObject)
+    }
+    await apiLogs.updateLogs(logData)
+  }
   return res.status(successObject?.status || 200).json({
     status: "success",
     message: successObject?.message || "Request was successful",
@@ -166,7 +174,14 @@ Generic.success = async (_, res, successObject) => {
   });
 };
 
-Generic.error = (_, res, errorObject) => {
+Generic.error = async (req, res, errorObject) => {
+  if (req.body.user && req.body.user.log_id) {
+    let logData = {
+      id: req.body.user.log_id,
+      response_payload: JSON.stringify(errorObject)
+    }
+    await apiLogs.updateLogs(logData)
+  }
   return res.status(errorObject?.status || 400).json({
     status: "error",
     message: errorObject?.message || "Unauthorized",

@@ -1,6 +1,7 @@
 const generic = require("./genricFn/common")
 const User = require("../models/userModel")
 const moment = require('moment-timezone');
+const apiLogs = require("../models/logsModel")
 
 module.exports = {
   authenticateJWT: async (req, res, next) => {
@@ -20,9 +21,17 @@ module.exports = {
       }
       let authVerification = await generic.jwtVerify(token, process.env.JWT_SECRET)
       if (authVerification.status) {
+        let addLog = {
+          api_endpoint: req.url,
+          request_payload: JSON.stringify(req.body),
+          dateTime: req.header("dateTime") ? req.header("dateTime") : moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+        }
         req.body.user = authVerification.data.userDetails
         let getUserDetails = await User.checkExistingUser({ filter: { userId: req.body.user.userId } })
         if (getUserDetails.length) {
+          addLog.userId = req.body.user.userId
+          let result = await apiLogs.addLogs(addLog)
+          req.body.user.log_id = result?.insertId
           req.body.user.isBoss = getUserDetails[0]?.is_boss == '1' ? true : false
           req.body.user.latitude = getUserDetails[0]?.latitude
           req.body.user.longitude = getUserDetails[0]?.longitude
