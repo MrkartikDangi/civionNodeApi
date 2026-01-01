@@ -8,6 +8,9 @@ const db = require("../../config/db")
 const { validationResult, matchedData } = require("express-validator");
 const notification = require("../../models/Notification")
 const moment = require("moment")
+const {
+  expenseTemplate,
+} = require("../../utils/pdfHandlerNew/htmlHandler");
 
 exports.addExpense = async (req, res) => {
   try {
@@ -26,10 +29,7 @@ exports.addExpense = async (req, res) => {
       } else {
         req.body.mileageExpense = mileageUser.reduce((sum, trip) => sum + trip.amount, 0)
       }
-
     }
-    // req.body.pdfBaseName = path.basename(req.body.receipt);
-    // req.body.folder_name = path.dirname(req.body.receipt);
     req.body.mileage_ids = mileage_ids
     const addExpense = await expense.addExpense(req.body)
     if (addExpense.insertId) {
@@ -59,12 +59,23 @@ exports.addExpense = async (req, res) => {
       }
       let notificationData = {
         subject: 'Expense',
-        message: `${req.body.user.username} has submitted an expense and mileage report with a total amount of $${(req.body.expenseAmount + req.body.mileageExpense).toFixed(2)}.`,
+        message: `${req.body.user.username} has submitted an expense and mileage report with a total amount of $${(req.body?.expenseAmount + req.body.mileageExpense).toFixed(2)}.`,
         for_boss: '1',
         created_by: req.body.user.userId,
         dateTime: req.body.user.dateTime
       }
       await notification.addNotificationData(notificationData)
+      let getMailInfo = await generic.getEmailInfo({ module_type: 'expense' })
+      let Maildata = {
+        to: getMailInfo?.email_to ?? '',
+        cc: getMailInfo?.email_cc ?? '',
+        bcc: getMailInfo?.email_bcc ?? '',
+        subject: `Expense submitted by ${req.body.user.username}`,
+        html: expenseTemplate({ message: `Please review the submitted expense by ${req.body.user.username} in the CIVION.` }),
+        attachments: [],
+      };
+      await generic.sendEmails(Maildata)
+
       db.connection.commit()
       return generic.success(req, res, {
         message: "Expense successfully created",
