@@ -113,7 +113,6 @@ exports.getDailyEntry = async (req, res) => {
       data: dailyEntries,
     });
   } catch (error) {
-    console.log(error)
     return generic.error(req, res, {
       status: 500,
       message: "something went wrong!",

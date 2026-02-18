@@ -195,6 +195,18 @@ exports.generateInvoiceExcel = async (req, res) => {
         let grandTotalSubTotal = 0;
         let grandTotal = 0;
 
+        let startDateMonth = moment(req.body.startDate).format('MMMM')
+        let endDateMonth = moment(req.body.endDate).format('MMMM')
+
+        let fromDate = moment(req.body.startDate).format('MMM DD,YYYY')
+        let endDate = moment(req.body.endDate).format('MMM DD,YYYY')
+        let dynaDesc = ` for the month of ${startDateMonth}`
+        if (startDateMonth !== endDateMonth) {
+          dynaDesc += ` and ${endDateMonth} specifically from ${fromDate} to ${endDate}`
+        }else{
+          dynaDesc += ` specifically from ${fromDate} to ${endDate}`
+        }
+
         for (let i = 0; i < data.length; i++) {
           const invoice = data[i];
           const dataRow = [
@@ -203,7 +215,7 @@ exports.generateInvoiceExcel = async (req, res) => {
             invoice.invoice_to,
             invoice.projectName,
             invoice.project_number,
-            invoice.description,
+            `${invoice.description}${dynaDesc}`,
           ];
 
           uniqueUserNames.forEach((userName, index) => {

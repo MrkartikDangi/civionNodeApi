@@ -116,12 +116,14 @@ exports.createPhotoFiles = async (req, res) => {
         row.fileName = path.basename(row.path);
         row.folder_name = path.dirname(row.path);
         await PhotoFiles.addPhotoFileData(row)
-        let data = {
-          filePath: `${process.env.Base_Url}${row.folder_name}/${row.fileName}`,
-          fileName: row.fileName,
-          folderPath: `civion/${getScheduleData[0]?.project_name ?? 'DefaultProject'}/photoFiles`
+        if (process.env.DEVTYPE == 'Prod') {
+          let data = {
+            filePath: `${process.env.Base_Url}${row.folder_name}/${row.fileName}`,
+            fileName: row.fileName,
+            folderPath: `civion/${getScheduleData[0]?.project_name ?? 'DefaultProject'}/photoFiles`
+          }
+          await generic.uploadFileToOneDrive(data)
         }
-        await generic.uploadFileToOneDrive(data)
       }
       db.connection.commit()
       return generic.success(req, res, {
