@@ -641,17 +641,12 @@ Generic.initializeOneDrive = async () => {
     if (existingToken.length) {
       console.log('OneDrive is ready to use (using existing token)');
     } else {
-      let deleteOneDriveExpiredToken = await oneDrive.deleteOneDriveExpiredToken();
-      if (deleteOneDriveExpiredToken.affectedRows) {
-        let result = await Generic.getAccessToken();
-        if (result.status) {
-          console.log('OneDrive is ready to use (generated new token)');
-        } else {
-          throw new Error('Failed to generate one drive auth token');
-        }
-
+      let result = await Generic.getAccessToken();
+      if (result.status) {
+        await oneDrive.deleteOneDriveExpiredToken();
+        console.log('OneDrive is ready to use (generated new token)');
       } else {
-        console.log('Failed to initialize one drive')
+        throw new Error('Failed to generate one drive auth token');
       }
 
     }
