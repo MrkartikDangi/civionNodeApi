@@ -16,7 +16,9 @@ const expense = require("../../models/expenseModel")
 const moment = require("moment")
 const db = require("../../config/db")
 const apiLogs = require("../../models/logsModel")
+const fcmNotification = require("../../config/firebase")
 // const oneDriveApi = require("onedrive-api")
+const User = require("../../models/userModel")
 // const pdfParse = require('pdf-parse');
 // const { PDFDocument } = require('pdf-lib');
 // const PDFParser = require('pdf2json');
@@ -976,7 +978,170 @@ Generic.getEmailInfo = async (postData) => {
     })
   })
 }
+Generic.sendNotification = async (postData) => {
+  try {
+    let fcmToken = ''
+    if (postData.fcmDeviceId && postData.fcmDeviceId !== "") {
+      fcmToken = postData.fcmDeviceId
+    } else {
+      let userDetails = await User.checkExistingUser({ filter: { userId: postData.userId } });
+      fcmToken = userDetails[0]?.fcm_device_id ?? ''
+    }
+    const message = {
+      token: fcmToken,
 
+      notification: {
+        title: postData.title,
+        body: postData.body,
+        image: postData.image || undefined
+      },
+
+      data: postData.data || {},
+
+      android: {
+        notification: {
+          sound: "default",
+          image: postData.image || undefined
+        },
+      },
+
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+            'mutable-content': 1,
+          },
+        },
+        fcm_options: {
+          image: postData.image || undefined,
+        },
+      },
+    };
+
+    const response = await fcmNotification.messaging().send(message);
+
+    console.log('Notification sent:', response);
+
+  } catch (error) {
+    console.error('Error sending notification:', error);
+  }
+};
+Generic.insertData = async (tableName, data) => {
+  return new Promise((resolve, reject) => {
+    try {
+      let columns = Object.keys(data).join(', ');
+      let placeholders = Object.keys(data).map(() => '?').join(', ');
+      let values = Object.values(data);
+      let query = `INSERT INTO ${tableName} (${columns}) VALUES (${placeholders})`;
+      db.connection.query(query, values, (err, res) => {
+        if (err) {
+          reject({ status: false, message: 'Failed to insert data' })
+        } else {
+          resolve({ status: true, message: 'Data successully inserted', id: res.insertId })
+        }
+      })
+
+    } catch (error) {
+      reject({ status: false, message: 'Error in  query', error });
+    }
+  })
+}
+Generic.updateData = async (tableName, data, condition) => {
+  return new Promise((resolve, reject) => {
+    try {
+      let setClause = Object.keys(data).map(key => `${key} = ?`).join(', ');
+      let whereClause = Object.keys(condition).map(key => `${key} = ?`).join(' AND ');
+      let query = `UPDATE ${tableName} SET ${setClause} WHERE ${whereClause}`;
+      let values = [
+        ...Object.values(data),
+        ...Object.values(condition)
+      ]
+      db.connection.query(query, values, (err, res) => {
+        if (err) {
+          reject({ status: false, message: 'Failed to update data' })
+        } else {
+          resolve({ status: true, message: 'Data successfully updated' })
+        }
+      })
+
+    } catch (error) {
+      reject({ status: false, message: 'Error in  query', error });
+    }
+  })
+}
+Generic.selectData = async (tableName, condition = {}, columns = '*') => {
+  return new Promise((resolve, reject) => {
+    try {
+      let cols = Array.isArray(columns) ? columns.join(', ') : columns;
+      let whereClause = '';
+      let values = [];
+
+      if (Object.keys(condition).length > 0) {
+        let conditions = [];
+
+        Object.keys(condition).forEach(key => {
+          let value = condition[key];
+
+          // IS NULL
+          if (value === null) {
+            conditions.push(`${key} IS NULL`);
+          }
+
+          // IS NOT NULL
+          else if (value === 'IS NOT NULL') {
+            conditions.push(`${key} IS NOT NULL`);
+          }
+
+          // NOT EQUAL
+          else if (typeof value === 'object' && value.operator === '!=') {
+            conditions.push(`${key} != ?`);
+            values.push(value.value);
+          }
+
+          // IN clause
+          else if (Array.isArray(value)) {
+            let placeholders = value.map(() => '?').join(', ');
+            conditions.push(`${key} IN (${placeholders})`);
+            values.push(...value);
+          }
+
+          // LIKE
+          else if (typeof value === 'object' && value.operator === 'LIKE') {
+            conditions.push(`${key} LIKE ?`);
+            values.push(value.value);
+          }
+
+          // Default =
+          else {
+            conditions.push(`${key} = ?`);
+            values.push(value);
+          }
+        });
+
+        whereClause = 'WHERE ' + conditions.join(' AND ');
+      }
+
+      let query = `SELECT ${cols} FROM ${tableName} ${whereClause}`;
+
+      console.log('query:', query);
+      console.log('values:', values);
+
+      db.connection.query(query, values, (err, res) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(res); // return all rows
+      });
+
+    } catch (error) {
+      reject({
+        status: false,
+        message: 'Error in select query',
+        error
+      });
+    }
+  });
+};
 
 
 module.exports = Generic;

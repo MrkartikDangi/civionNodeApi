@@ -143,6 +143,7 @@ exports.login = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "720h" },
       );
+      await generic.updateData('kps_users', { fcm_device_id: req.body.fcm_device_id }, { id: checkExistingUser[0]?.id })
       return generic.success(req, res, {
         message: "User logged in successfully",
         data: {
@@ -203,7 +204,7 @@ exports.forgotPassword = async (req, res) => {
       );
       const emailTemplateSource = fs.readFileSync(emailTemplatePath, "utf8");
       const emailTemplate = handlebars.compile(emailTemplateSource);
-      const emailHTML = emailTemplate({code:code});
+      const emailHTML = emailTemplate({ code: code });
       let data = {
         to: user?.[0]?.email,
         cc: '',
@@ -533,6 +534,34 @@ exports.updateUserProfileDetails = async (req, res) => {
       });
     }
   } catch (error) {
+    db.connection.rollback()
+    return generic.error(req, res, {
+      status: 500,
+      message: "Something went wrong !"
+    });
+  }
+};
+exports.logout = async (req, res) => {
+  try {
+    db.connection.beginTransaction()
+    let data = {
+      fcm_device_id: '',
+      updated_at: req.body.user.dateTime,
+    }
+    let logout = await generic.updateData('kps_users', data, { id: req.body.user.userId })
+    if (logout.status) {
+      db.connection.commit()
+      return generic.success(req, res, {
+        message: "Logout successfully",
+      });
+    } else {
+      db.connection.rollback()
+      return generic.error(req, res, {
+        message: "Failed to logout"
+      });
+    }
+  } catch (error) {
+    console.log('error', error)
     db.connection.rollback()
     return generic.error(req, res, {
       status: 500,

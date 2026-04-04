@@ -67,6 +67,17 @@ exports.createJobHazard = async (req, res) => {
         dateTime: req.body.user.dateTime
       }
       await notification.addNotificationData(notificationData)
+      let userFcmToken = await generic.selectData('kps_users', { jhaApproval: '1' }, ['fcm_device_id'])
+      if (userFcmToken.length) {
+        let notificationFcmData = {
+          fcmDeviceId: userFcmToken[0]?.fcm_device_id,
+          title: 'Job Hazard',
+          body: `${req.body.user.username} has submitted the Job Hazard Analysis`,
+          image: '',
+          data: {}
+        }
+        await generic.sendNotification(notificationFcmData)
+      }
       let getMailInfo = await generic.getEmailInfo({ module_type: 'job_hazard' })
       let getJhaApprovalUserMail = await User.checkExistingUser({ filter: { jhaApproval: '1' } })
       let approvalMail = ``
