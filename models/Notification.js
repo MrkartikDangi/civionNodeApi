@@ -9,7 +9,7 @@ notification.getNotificationsList = (postData) => {
     let whereCondition = ``
     let values
     if (!postData.user.isBoss && postData.user.jhaApproval) {
-      whereCondition += ` AND userid = ${postData.user.userId} AND for_boss = ? AND jhaApproval = ?`
+      whereCondition += ` AND for_boss = ? AND jhaApproval = ?`
       values = ['0', '1']
     } else if (!postData.user.isBoss) {
       whereCondition += ` AND userid = ${postData.user.userId} AND for_boss = ?`
