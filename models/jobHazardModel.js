@@ -13,7 +13,7 @@ jobHazard.getJobHazardData = (postData) => {
   if (postData.filter && postData.filter.selectedDate) {
     whereCondition += ` AND DATE(j.selected_date) = '${postData.filter.selectedDate}'`
   }
-    if (postData.filter && postData.filter.from_date && postData.filter.to_date) {
+  if (postData.filter && postData.filter.from_date && postData.filter.to_date) {
     whereCondition += ` AND j.created_at BETWEEN '${postData.filter.from_date}' AND '${postData.filter.to_date}'`
   }
   return new Promise((resolve, reject) => {
