@@ -22,6 +22,7 @@ const notificationController = require("../../controllers/app/notificationContro
 const drawingController = require("../../controllers/app/drawingController")
 const settingController = require("../../controllers/app/settingController")
 const oneDriveController = require("../../controllers/app/oneDriveController")
+const leaveController = require("../../controllers/app/leaveController")
 const generic = require("../../config/genricFn/common")
 
 function ensureDirExists(dirPath) {
@@ -357,7 +358,7 @@ router.post(
       check("tasks", "tasks is required").notEmpty(),
       check("toolBoxMeetingChecked", "toolBoxMeetingChecked is required").notEmpty(),
       check("employerSignature", "employerSignature is required").notEmpty(),
-      check("approverSignature", "approverSignature is required").notEmpty(),
+      check("approverSignature", "approverSignature is required"),
       check("schedule_id", "schedule_id is required").notEmpty(),
       check("completedStatus", "completedStatus is required").notEmpty(),
 
@@ -596,6 +597,53 @@ router.post(
   authenticateJWT,
   
 userController.updateUserProfileDetails,
+);
+router.post("/leave/getLeaveTypes",authenticateJWT,leaveController.getLeaveTypes);
+
+router.post("/leave/getLeaveList",authenticateJWT,leaveController.getLeaveList);
+
+
+router.post(
+  "/leave/addLeaveData",
+  oneOf([
+    [
+      check("leave_type_id", "Leave Type Id is required").notEmpty(),
+      check("from_date", "From Date is required").notEmpty(),
+      check("to_date", "To Date is required").notEmpty(),
+      check("reason", "reason is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  
+leaveController.addLeaveData,
+);
+router.post(
+  "/leave/updateLeaveData",
+  oneOf([
+    [
+      check("id", "Id is required").notEmpty(),
+      check("leave_type_id", "Leave Type Id is required").notEmpty(),
+      check("from_date", "From Date is required").notEmpty(),
+      check("to_date", "To Date is required").notEmpty(),
+      check("reason", "reason is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  
+leaveController.updateLeaveData,
+);
+router.post(
+  "/leave/updateLeaveStatus",
+  oneOf([
+    [
+      check("id", "Id is required").notEmpty(),
+      check("user_id", "User Id is required").notEmpty(),
+      check("status", "Status is required").notEmpty(),
+    ],
+  ]),
+  authenticateJWT,
+  
+leaveController.updateLeaveStatus,
 );
 
 module.exports = router;
