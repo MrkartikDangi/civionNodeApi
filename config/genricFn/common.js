@@ -1044,6 +1044,7 @@ Generic.insertData = async (tableName, data) => {
       let query = `INSERT INTO ${tableName} (${columns}) VALUES (${placeholders})`;
       db.connection.query(query, values, (err, res) => {
         if (err) {
+          console.log('err',err)
           reject({ status: false, message: 'Failed to insert data' })
         } else {
           resolve({ status: true, message: 'Data successully inserted', id: res.insertId })
@@ -1066,6 +1067,8 @@ Generic.updateData = async (tableName, data, condition) => {
         ...Object.values(condition)
       ]
       db.connection.query(query, values, (err, res) => {
+          console.log('err',err)
+
         if (err) {
           reject({ status: false, message: 'Failed to update data' })
         } else {
@@ -1131,10 +1134,6 @@ Generic.selectData = async (tableName, condition = {}, columns = '*') => {
       }
 
       let query = `SELECT ${cols} FROM ${tableName} ${whereClause}`;
-
-      console.log('query:', query);
-      console.log('values:', values);
-
       db.connection.query(query, values, (err, res) => {
         if (err) {
           return reject(err);
@@ -1151,6 +1150,41 @@ Generic.selectData = async (tableName, condition = {}, columns = '*') => {
     }
   });
 };
+// Generic.deleteData = async (tableName, condition) => {
+//   return new Promise((resolve, reject) => {
+//     try {
+//       let conditionKeys = Object.keys(condition)
+//         .map(key => `${key} = ?`)
+//         .join(' AND ');
+
+//       let values = Object.values(condition);
+
+//       let query = `DELETE FROM ${tableName} WHERE ${conditionKeys}`;
+
+//       db.connection.query(query, values, (err, res) => {
+//         if (err) {
+//           reject({
+//             status: false,
+//             message: 'Failed to delete data'
+//           });
+//         } else {
+//           resolve({
+//             status: true,
+//             message: 'Data successfully deleted',
+//             affectedRows: res.affectedRows
+//           });
+//         }
+//       });
+
+//     } catch (error) {
+//       reject({
+//         status: false,
+//         message: 'Error in query',
+//         error
+//       });
+//     }
+//   });
+// };
 
 
 module.exports = Generic;

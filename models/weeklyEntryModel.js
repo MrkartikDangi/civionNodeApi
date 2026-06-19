@@ -66,8 +66,9 @@ weeklyEntry.getWeeklyEntry = (postData) => {
       } else {
         if (res.length) {
           for (let row of res) {
+            let data = row?.weeklyAllList;
             row.siteInspector = row.siteInspector !== null ? row.siteInspector.split(',') : []
-            row.weeklyAllList = row.weeklyAllList?.data?.length ? JSON.parse(Buffer.from(row.weeklyAllList.data).toString()): [];
+            row.weeklyAllList =  data && Buffer.isBuffer(data) && data.length > 0 ? JSON.parse(Buffer.from(row.weeklyAllList).toString()) : [];
           }
         }
         resolve(res)
@@ -82,9 +83,9 @@ weeklyEntry.createWeeklyEntry = (postData) => {
     let insertedData = {
       userId: postData.user.userId,
       schedule_id: postData.schedule_id,
-      weekStartDate: postData.startDate,
-      weekEndDate: postData.endDate,
-      reportDate: postData.reportDate,
+      weekStartDate: postData.startDate ? postData.startDate : null,
+      weekEndDate: postData.endDate ? postData.endDate : null,
+      reportDate: postData.reportDate ? postData.reportDate : null,
       contractNumber: postData.contractNumber || null,
       projectManager: postData.projectManager || null,
       consultantProjectManager: postData.consultantProjectManager || null,
@@ -99,9 +100,10 @@ weeklyEntry.createWeeklyEntry = (postData) => {
       supportCA: postData.supportCA || null,
       component: postData.component || null,
       logo: postData.logo ? postData.logo.join(',') : null,
-      signature: postData.signature,
-      pdfName: postData.pdfName,
-      weeklyAllList: Object.keys(postData.weeklyAllList).length ? JSON.stringify(postData.weeklyAllList) : '',
+      signature: postData.signature ? postData.signature : "",
+      pdfName: postData.pdfName ? postData.pdfName : "",
+      weeklyAllList: postData.weeklyAllList && Object.keys(postData.weeklyAllList).length ? JSON.stringify(postData.weeklyAllList) : '',
+      form_completed:postData?.form_completed ?? 0,
       created_at: postData.user.dateTime,
       created_by: postData.user.userId
     }

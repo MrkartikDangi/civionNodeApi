@@ -88,6 +88,9 @@ router.post(
   "/auth/getUsersList", authenticateJWT, userController.getUsersList,
 );
 router.post(
+  "/auth/getUsersAnniversaryDetails", authenticateJWT, userController.getUsersAnniversaryDetails,
+);
+router.post(
   "/auth/addUser",
   oneOf([
     [
@@ -95,6 +98,8 @@ router.post(
       check("mileageRate", "mileageRate is required").notEmpty(),
       check("allowanceDistance", "allowanceDistance is required"),
       check("isBoss", "isBoss is required").notEmpty(),
+      check("date_of_joining", "date of joining is required"),
+
     ],
   ]),
   authenticateJWT,
@@ -134,7 +139,7 @@ router.post(
   ]),
   userController.login,
 );
-router.post("/auth/logout",authenticateJWT,userController.logout);
+router.post("/auth/logout", authenticateJWT, userController.logout);
 router.post(
   "/auth/changePassword",
   oneOf([[check("currentPassword", "currentPassword is required").notEmpty()]]),
@@ -223,17 +228,16 @@ router.post(
   "/diary/createDailyDiary",
   oneOf([
     [
+      check("id", "id is required"),
       check("schedule_id", "schedule_id is required").notEmpty(),
-      check("selectedDate", "selectedDate is required").notEmpty(),
-      check(
-        "ownerProjectManager",
-        "ownerProjectManager is required",
-      ).notEmpty(),
-      check("contractNumber", "contractNumber is required").notEmpty(),
-      check("contractor", "contractor is required").notEmpty(),
-      check("reportNumber", "reportNumber is required").notEmpty(),
-      check("ownerContact", "ownerContact is required").notEmpty(),
-      check("description", "description is required").notEmpty(),
+      // check("selectedDate", "selectedDate is required").notEmpty(),
+      // check("ownerProjectManager","ownerProjectManager is required",).notEmpty(),
+      // check("contractNumber", "contractNumber is required").notEmpty(),
+      // check("contractor", "contractor is required").notEmpty(),
+      // check("reportNumber", "reportNumber is required").notEmpty(),
+      // check("ownerContact", "ownerContact is required").notEmpty(),
+      // check("description", "description is required").notEmpty(),
+      // check("form_completed", "form key is required").notEmpty(),
     ],
   ]),
   authenticateJWT,
@@ -250,11 +254,12 @@ router.post(
   "/daily/createDailyEntry",
   oneOf([
     [
+      check("id", "id is required"),
       check("schedule_id", "schedule_id is required").notEmpty(),
-      check("selectedDate", "selectedDate is required").notEmpty(),
-      check("location", "location is required").notEmpty(),
-      check("reportNumber", "reportNumber is required").notEmpty(),
-      check("photoFiles", "photoFiles is required").notEmpty(),
+      // check("selectedDate", "selectedDate is required").notEmpty(),
+      // check("location", "location is required").notEmpty(),
+      // check("reportNumber", "reportNumber is required").notEmpty(),
+      // check("photoFiles", "photoFiles is required").notEmpty(),
 
     ],
   ]),
@@ -266,10 +271,11 @@ router.post(
   "/weekly/createWeeklyEntry",
   oneOf([
     [
+      check("id", "id is required"),
       check("schedule_id", "schedule_id is required").notEmpty(),
-      check("startDate", "startDate is required").notEmpty(),
-      check("endDate", "endDate is required").notEmpty(),
-      check("photoFiles", "photoFiles is required").notEmpty(),
+      // check("startDate", "startDate is required").notEmpty(),
+      // check("endDate", "endDate is required").notEmpty(),
+      // check("photoFiles", "photoFiles is required").notEmpty(),
 
     ],
   ]),
@@ -590,17 +596,19 @@ router.post(
       check("last_name", "Last Name is required"),
       check("mileage_rate", "Mileage Rate is required").notEmpty(),
       check("allowanceDistance", "Allowance Distance is required").notEmpty(),
-      check("profile_image", "Profile Image is required")
-
+      check("profile_image", "Profile Image is required"),
+      check("vaccation_leave", "Vaccation Leave is required"),
+      check("date_of_joining", "Date of joining is required"),
+      check("paid_leave", "Paid Leave is required")
     ],
   ]),
   authenticateJWT,
-  
-userController.updateUserProfileDetails,
-);
-router.post("/leave/getLeaveTypes",authenticateJWT,leaveController.getLeaveTypes);
 
-router.post("/leave/getLeaveList",authenticateJWT,leaveController.getLeaveList);
+  userController.updateUserProfileDetails,
+);
+router.post("/leave/getLeaveTypes", authenticateJWT, leaveController.getLeaveTypes);
+
+router.post("/leave/getLeaveList", authenticateJWT, leaveController.getLeaveList);
 
 
 router.post(
@@ -611,11 +619,14 @@ router.post(
       check("from_date", "From Date is required").notEmpty(),
       check("to_date", "To Date is required").notEmpty(),
       check("reason", "reason is required").notEmpty(),
+      check("leave_manager_id", "Leave Manager Id is required"),
+      check("no_of_days", "No of days is required").notEmpty(),
+
     ],
   ]),
   authenticateJWT,
-  
-leaveController.addLeaveData,
+
+  leaveController.addLeaveData,
 );
 router.post(
   "/leave/updateLeaveData",
@@ -626,11 +637,12 @@ router.post(
       check("from_date", "From Date is required").notEmpty(),
       check("to_date", "To Date is required").notEmpty(),
       check("reason", "reason is required").notEmpty(),
+      check("leave_manager_id", "Leave Manager Id is required").notEmpty(),
     ],
   ]),
   authenticateJWT,
-  
-leaveController.updateLeaveData,
+
+  leaveController.updateLeaveData,
 );
 router.post(
   "/leave/updateLeaveStatus",
@@ -639,11 +651,22 @@ router.post(
       check("id", "Id is required").notEmpty(),
       check("user_id", "User Id is required").notEmpty(),
       check("status", "Status is required").notEmpty(),
+      // check("leave_manager_id", "Leave Manager Id is required").notEmpty(),
+      check("leave_approval_level", "Approval Level is required").notEmpty(),
+      check("leave_type_id", "Leave Type Id is required").notEmpty(),
+      check("no_of_days", "No of days is required").notEmpty(),
+
     ],
   ]),
   authenticateJWT,
-  
-leaveController.updateLeaveStatus,
+
+  leaveController.updateLeaveStatus,
 );
+router.post(
+  "/photofiles/recentPhotoFiles",
+  authenticateJWT,
+  photoFileController.recentPhotoFiles,
+);
+
 
 module.exports = router;
